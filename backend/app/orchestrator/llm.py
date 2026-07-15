@@ -3,7 +3,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel, Field
 
 def get_llm():
-    api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") or "mock-key"
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "mock-key"
     if api_key == "mock-key":
         # Fallback to mock LLM for local development/testing without a valid key
         from langchain_core.language_models import FakeListChatModel
