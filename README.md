@@ -4,12 +4,33 @@ An enterprise-grade, AI-powered technical assessment platform combining adaptive
 
 ---
 
+## 🚀 Quick Start: Run Anywhere (Docker Option with `uv` - Recommended)
+
+To run the entire stack (FastAPI backend + Vite frontend) with a single command on **any machine** (Windows, Linux, macOS, or Cloud):
+
+```bash
+# 1. Copy environment template and set your Gemini API Key, Gemini Model and Database URL
+cp backend/.env.example backend/.env
+# (Edit backend/.env to insert your GOOGLE_API_KEY / GEMINI_API_KEY)
+
+# 2. Launch all containers (the backend automatically uses multi-stage uv dependency caching and installation)
+docker compose up --build
+```
+
+Once running, access the platform:
+- **Frontend Application**: http://localhost:5173
+- **Backend API & Docs (Swagger UI)**: http://localhost:8000/docs
+- **Health Check Ping**: http://localhost:8000/health
+
+---
+
 ## 1. Prerequisites & System Requirements
 
-Before getting started, ensure you have the following installed on your system:
+Before getting started with local development without Docker, ensure you have the following installed on your system:
 
 - **Python**: `3.12` or higher
 - **uv**: Installed via `python -m pip install uv` or official standalone installer (`curl -LsSf https://astral.sh/uv/install.sh | sh` / `irm https://astral.sh/uv/install.ps1 | iex`)
+- **Docker & Docker Compose**: (Optional, required only if running containerized deployment via `docker-compose.yml`)
 - **Node.js**: `v20.0.0` or higher (LTS v24 recommended)
 - **npm**: `v9.0.0` or higher (bundled with Node.js)
 - **API Key**: A valid [Google Gemini API Key](https://aistudio.google.com/app/apikey) (`GEMINI_API_KEY`)
@@ -57,7 +78,21 @@ Before getting started, ensure you have the following installed on your system:
    ```ini
    GEMINI_API_KEY="your_google_gemini_api_key_here"
    GEMINI_MODEL="gemini-3.1-flash-lite"
+   DATABASE_URL="sqlite:///./dev.db" # Or postgresql://user:pass@host:5432/dbname
    ```
+
+4. **Database Migrations**:
+   The backend uses **SQLAlchemy** and **Alembic** to manage database schemas (`candidates`, `exam_sessions`, `exam_qa`, `proctoring_logs`).
+   
+   - **Run Alembic Migrations directly**:
+     ```bash
+     alembic upgrade head
+     ```
+   - **Create a New Migration after Model Changes**:
+     ```bash
+     alembic revision --autogenerate -m "Add new column or table"
+     alembic upgrade head
+     ```
 
 ---
 
