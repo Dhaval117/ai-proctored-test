@@ -12,7 +12,7 @@ Before getting started, ensure you have the following installed on your system:
 - **uv**: Installed via `python -m pip install uv` or official standalone installer (`curl -LsSf https://astral.sh/uv/install.sh | sh` / `irm https://astral.sh/uv/install.ps1 | iex`)
 - **Node.js**: `v20.0.0` or higher (LTS v24 recommended)
 - **npm**: `v9.0.0` or higher (bundled with Node.js)
-- **API Key**: A valid [Google Gemini API Key](https://aistudio.google.com/app/apikey) (`GOOGLE_API_KEY` or `GEMINI_API_KEY`)
+- **API Key**: A valid [Google Gemini API Key](https://aistudio.google.com/app/apikey) (`GEMINI_API_KEY`)
 
 ---
 
@@ -31,7 +31,7 @@ Before getting started, ensure you have the following installed on your system:
      ```powershell
      powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
      ```
-   - **macOS / Linux**:
+   - **Linux / macOS**:
      ```bash
      curl -LsSf https://astral.sh/uv/install.sh | sh
      ```
@@ -55,8 +55,8 @@ Before getting started, ensure you have the following installed on your system:
      ```
    Open `backend/.env` and set your key:
    ```ini
-   GOOGLE_API_KEY="your_google_gemini_api_key_here"
-   GOOGLE_LLM_MODEL="gemini-3.1-flash-lite"
+   GEMINI_API_KEY="your_google_gemini_api_key_here"
+   GEMINI_MODEL="gemini-3.1-flash-lite"
    ```
 
 ---

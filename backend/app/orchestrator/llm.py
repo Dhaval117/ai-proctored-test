@@ -33,7 +33,7 @@ def get_llm():
         ]
         return MockLLM(responses=questions)
 
-    model_name = os.getenv("GOOGLE_LLM_MODEL", "gemini-3.1-flash-lite")
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 
     return ChatGoogleGenerativeAI(
         model=model_name,
