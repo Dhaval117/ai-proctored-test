@@ -8,8 +8,9 @@ An enterprise-grade, AI-powered technical assessment platform combining adaptive
 
 Before getting started, ensure you have the following installed on your system:
 
-- **Python**: `3.10`, `3.11`, or `3.12` (Python 3.12 recommended)
-- **Node.js**: `v18.0.0` or higher (LTS v20 recommended)
+- **Python**: `3.12` or higher
+- **uv**: Installed via `python -m pip install uv` or official standalone installer (`curl -LsSf https://astral.sh/uv/install.sh | sh` / `irm https://astral.sh/uv/install.ps1 | iex`)
+- **Node.js**: `v20.0.0` or higher (LTS v24 recommended)
 - **npm**: `v9.0.0` or higher (bundled with Node.js)
 - **API Key**: A valid [Google Gemini API Key](https://aistudio.google.com/app/apikey) (`GEMINI_API_KEY`)
 
@@ -17,32 +18,32 @@ Before getting started, ensure you have the following installed on your system:
 
 ## 2. Installation & Setup Instructions
 
-### Backend Setup (Python / FastAPI)
+### Backend Setup (Python / FastAPI with `uv`)
 
 1. **Navigate to the `backend` directory**:
    ```bash
    cd backend
    ```
 
-2. **Create a Python Virtual Environment**:
-   - **Windows (PowerShell or CMD)**:
+2. **Install Dependencies using `uv`**:
+   If you don't have `uv` installed yet, install it first:
+   - **Windows (PowerShell)**:
      ```powershell
-     python -m venv .venv
-     .\.venv\Scripts\activate
+     powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
      ```
    - **Linux / macOS**:
      ```bash
-     python3 -m venv .venv
-     source .venv/bin/activate
+     curl -LsSf https://astral.sh/uv/install.sh | sh
      ```
+   *(Note: After installing `uv`, **restart your terminal** or run `$env:PATH = "$HOME\.local\bin;$env:PATH"` in PowerShell so your shell recognizes the `uv` command.)*
 
-3. **Install Dependencies**:
+   Then, sync all dependencies (including dev tools):
    ```bash
-   pip install --upgrade pip
-   pip install -r requirements.txt
+   uv sync --extra dev
    ```
+   *(Note: `uv sync` will automatically create the `.venv` virtual environment and download the required Python version if needed.)*
 
-4. **Configure Environment Variables**:
+3. **Configure Environment Variables**:
    Copy `.env.example` to `.env` and configure your Google Gemini API key:
    - **Windows (PowerShell)**:
      ```powershell
@@ -82,19 +83,12 @@ Before getting started, ensure you have the following installed on your system:
 
 ## 3. Starting the Backend Server (Port `8000`)
 
-To run the FastAPI backend server with hot-reloading enabled:
+To run the FastAPI backend server with hot-reloading enabled using `uv`:
 
-- **Windows (PowerShell or CMD)**:
-  ```powershell
-  cd backend
-  .\.venv\Scripts\uvicorn.exe app.main:app --host 127.0.0.1 --port 8000 --reload
-  ```
-- **Linux / macOS**:
-  ```bash
-  cd backend
-  source .venv/bin/activate
-  uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
-  ```
+```bash
+cd backend
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
 
 Once running, access:
 - **Backend API Docs (Swagger UI)**: http://127.0.0.1:8000/docs
@@ -122,10 +116,7 @@ Once running, access the web interface at:
 ### Backend Unit & Integration Tests (Pytest)
 ```bash
 cd backend
-# Windows:
-.\.venv\Scripts\pytest.exe tests/ -v
-# Linux / macOS:
-pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
 ### Frontend Unit Tests (Vitest)
