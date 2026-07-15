@@ -9,10 +9,10 @@ An enterprise-grade, AI-powered technical assessment platform combining adaptive
 Before getting started, ensure you have the following installed on your system:
 
 - **Python**: `3.12` or higher
-- **uv**: Installed via `python -m pip install uv` or official standalone installer
+- **uv**: Installed via `python -m pip install uv` or official standalone installer (`curl -LsSf https://astral.sh/uv/install.sh | sh` / `irm https://astral.sh/uv/install.ps1 | iex`)
 - **Node.js**: `v20.0.0` or higher (LTS v24 recommended)
 - **npm**: `v9.0.0` or higher (bundled with Node.js)
-- **API Key**: A valid [Google Gemini API Key](https://aistudio.google.com/app/apikey) (`GEMINI_API_KEY`)
+- **API Key**: A valid [Google Gemini API Key](https://aistudio.google.com/app/apikey) (`GOOGLE_API_KEY` or `GEMINI_API_KEY`)
 
 ---
 
