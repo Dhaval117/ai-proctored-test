@@ -40,6 +40,7 @@ import {
 import { useMediaCheck } from '../hooks/useMediaCheck'
 import { useNetworkCheck } from '../lib/useNetworkCheck'
 import type { CheckStatus } from '../lib/useNetworkCheck'
+import { validateReferencePhoto, ensureFaceApiModelsLoaded } from '../lib/photoValidation'
 import { SETUP_STORAGE_KEY, type CandidateFormData } from './SetupPage'
 
 export const PHOTO_STORAGE_KEY = 'proctor_photo'
@@ -259,8 +260,10 @@ export default function SystemCheckPage() {
 
   const networkCheck = useNetworkCheck() as ReturnType<typeof useNetworkCheck> & { _pingSamples: number[] }
 
-  const [currentStep,   setCurrentStep]   = useState<Step>('camera')
-  const [photoPreview,  setPhotoPreview]  = useState<string | null>(null)
+  const [currentStep,       setCurrentStep]       = useState<Step>('camera')
+  const [photoPreview,      setPhotoPreview]      = useState<string | null>(null)
+  const [photoError,        setPhotoError]        = useState<string | null>(null)
+  const [isValidatingPhoto, setIsValidatingPhoto] = useState(false)
 
   // ── Guard: redirect if setup data missing ─────────────────────────────────
 
@@ -268,6 +271,14 @@ export default function SystemCheckPage() {
     const saved = sessionStorage.getItem(SETUP_STORAGE_KEY)
     if (!saved) navigate('/', { replace: true })
   }, [navigate])
+
+  // ── Preload face-api models when entering Step 3 ──────────────────────────
+
+  useEffect(() => {
+    if (currentStep === 'photo') {
+      ensureFaceApiModelsLoaded().catch(err => console.error('Failed to preload face-api models:', err))
+    }
+  }, [currentStep])
 
   // ── Attach camera stream to whichever <video> is currently mounted ────────
 
@@ -282,25 +293,46 @@ export default function SystemCheckPage() {
   // ── Step navigation ───────────────────────────────────────────────────────
 
   const handleCameraNext = () => {
-    if (cameraState === 'granted') setCurrentStep('microphone')
+    if (cameraState === 'granted') {
+      setPhotoError(null)
+      setCurrentStep('microphone')
+    }
   }
 
   const handleMicNext = () => {
-    if (micState === 'granted') setCurrentStep('photo')
+    if (micState === 'granted') {
+      setPhotoError(null)
+      setCurrentStep('photo')
+    }
   }
 
-  const handleCapture = useCallback(() => {
+  const handleCapture = useCallback(async () => {
     const video = videoRef.current
     if (!video) return
-    const dataUrl = capturePhoto(video)
-    if (dataUrl) {
-      setPhotoPreview(dataUrl)
-      sessionStorage.setItem(PHOTO_STORAGE_KEY, dataUrl)
+    setPhotoError(null)
+    setIsValidatingPhoto(true)
+    try {
+      const validation = await validateReferencePhoto(video)
+      if (!validation.valid) {
+        setPhotoError(validation.reason || 'Reference photo rejected. Please align your face inside the oval guide and ensure clear lighting.')
+        return
+      }
+      const dataUrl = capturePhoto(video)
+      if (dataUrl) {
+        setPhotoPreview(dataUrl)
+        sessionStorage.setItem(PHOTO_STORAGE_KEY, dataUrl)
+      }
+    } catch (err) {
+      console.error('[SystemCheckPage] Photo capture/validation error:', err)
+      setPhotoError('Failed to validate photo. Please try again.')
+    } finally {
+      setIsValidatingPhoto(false)
     }
   }, [capturePhoto])
 
   const handleRetakePhoto = useCallback(() => {
     setPhotoPreview(null)
+    setPhotoError(null)
     sessionStorage.removeItem(PHOTO_STORAGE_KEY)
   }, [])
 
@@ -610,6 +642,24 @@ export default function SystemCheckPage() {
             )}
           </div>
 
+          {photoError && (
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: '10px',
+              background: 'hsl(0 70% 12%)', border: '1px solid hsl(0 70% 35% / 0.5)',
+              borderRadius: '10px', padding: '12px 14px', marginBottom: '16px',
+            }}>
+              <AlertCircle style={{ width: '16px', height: '16px', color: 'var(--color-danger)', flexShrink: 0, marginTop: '1px' }} />
+              <div>
+                <p style={{ margin: 0, fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-danger)' }}>
+                  Photo Rejected
+                </p>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: 'hsl(0 70% 65%)' }}>
+                  {photoError}
+                </p>
+              </div>
+            </div>
+          )}
+
           {!photoPreview && (
             <ul style={{ marginBottom: '20px', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {[
@@ -626,9 +676,24 @@ export default function SystemCheckPage() {
           )}
 
           {!photoPreview ? (
-            <button id="btn-capture-photo" className="btn-primary" style={{ width: '100%' }} onClick={handleCapture}>
-              <Camera style={{ width: '16px', height: '16px' }} />
-              Capture Reference Photo
+            <button
+              id="btn-capture-photo"
+              className="btn-primary"
+              style={{ width: '100%' }}
+              onClick={handleCapture}
+              disabled={isValidatingPhoto}
+            >
+              {isValidatingPhoto ? (
+                <>
+                  <Loader2 style={{ width: '16px', height: '16px' }} className="animate-spin" />
+                  Checking Photo & Alignment…
+                </>
+              ) : (
+                <>
+                  <Camera style={{ width: '16px', height: '16px' }} />
+                  Capture Reference Photo
+                </>
+              )}
             </button>
           ) : (
             <div style={{ display: 'flex', gap: '12px' }}>
