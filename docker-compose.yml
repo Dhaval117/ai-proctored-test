@@ -10,16 +10,11 @@ services:
       - "8000:8000"
     env_file:
       - ./backend/.env
-    environment:
-      - DATABASE_URL=${DATABASE_URL:-sqlite:///./dev.db}
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-""}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.1-flash-lite}
-      - DB_ECHO=${DB_ECHO:-false}
     volumes:
       - backend_data:/app/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/health"]
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:8000/health" ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -38,7 +33,6 @@ services:
       backend:
         condition: service_healthy
     restart: unless-stopped
-
   # ─────────────────────────────────────────────────────────────
   # Optional PostgreSQL Service (Uncomment to use Postgres instead of SQLite)
   # To use: set DATABASE_URL=postgresql://proctor_user:proctor_pass@db:5432/proctor_db in backend environment
@@ -57,5 +51,4 @@ services:
   #   restart: unless-stopped
 
 volumes:
-  backend_data:
-  # postgres_data:
+  backend_data: # postgres_data:
