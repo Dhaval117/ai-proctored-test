@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ai_proctored_backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - backend_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:8000/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ai_proctored_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://backend:8000}
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+  # ─────────────────────────────────────────────────────────────
+  # Optional PostgreSQL Service (Uncomment to use Postgres instead of SQLite)
+  # To use: set DATABASE_URL=postgresql://proctor_user:proctor_pass@db:5432/proctor_db in backend environment
+  # ─────────────────────────────────────────────────────────────
+  # db:
+  #   image: postgres:16-alpine
+  #   container_name: ai_proctored_db
+  #   environment:
+  #     POSTGRES_USER: proctor_user
+  #     POSTGRES_PASSWORD: proctor_pass
+  #     POSTGRES_DB: proctor_db
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+
+volumes:
+  backend_data: # postgres_data:
