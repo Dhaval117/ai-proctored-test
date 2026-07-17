@@ -7,24 +7,82 @@ import { api } from '../lib/api'
 vi.mock('../lib/api', () => ({
   api: {
     logEvent: vi.fn(),
+    getProctoringConfig: vi.fn().mockResolvedValue({
+      proctoring_enabled: true,
+      allow_toggle: true,
+    }),
   },
 }))
 
 describe('useProctor', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(api.getProctoringConfig).mockResolvedValue({
+      proctoring_enabled: true,
+      allow_toggle: true,
+    })
   })
 
-  it('initializes with default state', () => {
+  it('initializes with default state', async () => {
     const { result } = renderHook(() => useProctor('session-123'))
     
-    expect(result.current.violationCount).toBe(0)
-    expect(result.current.maxViolations).toBe(3)
-    expect(result.current.status).toBe('ACTIVE')
-    expect(result.current.showWarningModal).toBe(false)
+    await waitFor(() => {
+      expect(result.current.violationCount).toBe(0)
+      expect(result.current.maxViolations).toBe(3)
+      expect(result.current.status).toBe('ACTIVE')
+      expect(result.current.showWarningModal).toBe(false)
+    })
   })
 
+  it('fetches proctoring config on mount', async () => {
+    const { result } = renderHook(() => useProctor('session-123'))
 
+    await waitFor(() => {
+      expect(result.current.proctoringEnabled).toBe(true)
+      expect(result.current.allowToggle).toBe(true)
+    })
+  })
+
+  it('disallows toggle when allow_toggle is false from server', async () => {
+    vi.mocked(api.getProctoringConfig).mockResolvedValue({
+      proctoring_enabled: true,
+      allow_toggle: false,
+    })
+
+    const { result } = renderHook(() => useProctor('session-123'))
+
+    await waitFor(() => {
+      expect(result.current.allowToggle).toBe(false)
+      expect(result.current.isPaused).toBe(false)
+    })
+
+    await act(async () => {
+      result.current.setIsPaused(true)
+    })
+
+    // Should remain false because allowToggle is false
+    expect(result.current.isPaused).toBe(false)
+  })
+
+  it('pauses and ignores violations when proctoring_enabled is false from server', async () => {
+    vi.mocked(api.getProctoringConfig).mockResolvedValue({
+      proctoring_enabled: false,
+      allow_toggle: false,
+    })
+
+    const { result } = renderHook(() => useProctor('session-123'))
+
+    await waitFor(() => {
+      expect(result.current.proctoringEnabled).toBe(false)
+      expect(result.current.isPaused).toBe(true)
+    })
+
+    await act(async () => {
+      window.dispatchEvent(new Event('blur'))
+    })
+
+    expect(api.logEvent).not.toHaveBeenCalled()
+  })
 
   it('triggers TAB_SWITCH on window blur', async () => {
     const mockedLogEvent = vi.mocked(api.logEvent).mockResolvedValue({

@@ -8,6 +8,8 @@ export interface ProctorState {
   warningMessage: string | null
   showWarningModal: boolean
   isPaused: boolean
+  proctoringEnabled: boolean
+  allowToggle: boolean
 }
 
 export interface ProctorActions {
@@ -24,6 +26,8 @@ export function useProctor(sessionId: string | undefined): ProctorState & Procto
   const [status, setStatus] = useState<ExamStatus>('ACTIVE')
   const [warningMessage, setWarningMessage] = useState<string | null>(null)
   const [showWarningModal, setShowWarningModal] = useState(false)
+  const [proctoringEnabled, setProctoringEnabled] = useState(true)
+  const [allowToggle, setAllowToggle] = useState(false)
   
   // Default paused to true in development mode unless explicitly unpaused (do not pause in unit tests)
   const [isPaused, setIsPausedState] = useState<boolean>(() => {
@@ -38,13 +42,44 @@ export function useProctor(sessionId: string | undefined): ProctorState & Procto
   const isPausedRef = useRef(isPaused)
   isPausedRef.current = isPaused
 
+  const proctoringEnabledRef = useRef(proctoringEnabled)
+  proctoringEnabledRef.current = proctoringEnabled
+
+  const allowToggleRef = useRef(allowToggle)
+  allowToggleRef.current = allowToggle
+
+  useEffect(() => {
+    let mounted = true
+    async function fetchConfig() {
+      try {
+        const config = await api.getProctoringConfig()
+        if (!mounted) return
+        setProctoringEnabled(config.proctoring_enabled)
+        setAllowToggle(config.allow_toggle)
+        if (!config.proctoring_enabled) {
+          setIsPausedState(true)
+        } else if (!config.allow_toggle) {
+          setIsPausedState(false)
+          localStorage.removeItem('PAUSE_PROCTORING')
+        }
+      } catch (err) {
+        console.error('Failed to fetch proctoring config:', err)
+      }
+    }
+    fetchConfig()
+    return () => {
+      mounted = false
+    }
+  }, [sessionId])
+
   const setIsPaused = useCallback((paused: boolean) => {
+    if (!allowToggleRef.current) return
     setIsPausedState(paused)
     localStorage.setItem('PAUSE_PROCTORING', paused ? 'true' : 'false')
   }, [])
 
   const handleViolation = useCallback(async (type: ViolationType, severity: SeverityLevel, snapshot?: string) => {
-    if (isPausedRef.current || !sessionId || isSuspended.current) return
+    if (!proctoringEnabledRef.current || isPausedRef.current || !sessionId || isSuspended.current) return
 
     // Debounce rapid events (e.g. blur followed by visibilitychange)
     const now = Date.now()
@@ -156,6 +191,8 @@ export function useProctor(sessionId: string | undefined): ProctorState & Procto
     warningMessage,
     showWarningModal,
     isPaused,
+    proctoringEnabled,
+    allowToggle,
     dismissWarning,
     handleViolation,
     setIsPaused,

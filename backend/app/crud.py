@@ -15,8 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.models import Candidate, ExamQA, ExamSession, ProctoringLog
 from app.schemas import ExamStatus, SeverityLevel, ViolationType
-
-MAX_VIOLATIONS = 3
+from app.config import MAX_VIOLATIONS, PROCTORING_ENABLED
 
 
 # ─────────────────────────────────────────────
@@ -230,7 +229,20 @@ def log_proctoring_event(
     - MEDIUM / HIGH severity: also increments violation_count. When
       violation_count reaches MAX_VIOLATIONS (3), the session is suspended.
     """
+    if not PROCTORING_ENABLED:
+        log_entry = ProctoringLog(
+            session_id=session.id,
+            event_type=event_type.value,
+            severity=SeverityLevel.LOW.value,
+            warning_number=None,
+            snapshot=snapshot,
+        )
+        db.add(log_entry)
+        db.flush()
+        return log_entry, session
+
     # Determine warning number for MEDIUM/HIGH events
+
     warning_number: Optional[int] = None
     if severity.value in (SeverityLevel.MEDIUM.value, SeverityLevel.HIGH.value):
         session.violation_count += 1

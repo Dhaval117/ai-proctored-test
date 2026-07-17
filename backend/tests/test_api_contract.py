@@ -298,6 +298,26 @@ class TestLogEvent:
         assert r.status_code == 422
 
 
+class TestProctoringConfig:
+    def test_get_config_default(self, client):
+        r = client.get("/api/proctoring/config")
+        assert r.status_code == 200
+        body = r.json()
+        assert "proctoring_enabled" in body
+        assert "allow_toggle" in body
+
+    def test_log_event_when_disabled(self, client):
+        from unittest.mock import patch
+        from app.mock_data import SESSION_ID
+        with patch("app.routers.mock_router.PROCTORING_ENABLED", False):
+            r = client.post(f"/api/sessions/{SESSION_ID}/log-event", json=VALID_EVENT_PAYLOAD)
+            assert r.status_code == 200
+            body = r.json()
+            assert body["violation_count"] == 0
+            assert body["session_status"] == "ACTIVE"
+            assert "disabled" in body["warning_message"].lower()
+
+
 # ─────────────────────────────────────────────
 # Admin endpoints (still mocked)
 # ─────────────────────────────────────────────

@@ -328,3 +328,14 @@ class TestProctoringLogCRUD:
         logs = crud.get_session_logs(db, session.id)
         assert len(logs) == 2
         assert logs[0].event_type == ViolationType.COPY_PASTE.value
+
+    def test_log_event_when_proctoring_disabled(self, db):
+        from unittest.mock import patch
+        session = self._make_active_session(db)
+        with patch("app.crud.PROCTORING_ENABLED", False):
+            log, updated_session = crud.log_proctoring_event(
+                db, session, event_type=ViolationType.TAB_SWITCH, severity=SeverityLevel.HIGH
+            )
+            assert updated_session.violation_count == 0
+            assert log.severity == SeverityLevel.LOW.value
+            assert log.warning_number is None
