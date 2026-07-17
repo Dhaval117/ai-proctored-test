@@ -147,6 +147,11 @@ class LogEventResponse(BaseModel):
     warning_message: str
 
 
+class ProctoringConfigResponse(BaseModel):
+    proctoring_enabled: bool
+    allow_toggle: bool
+
+
 class AdminSessionSummary(BaseModel):
     session_id: uuid.UUID
     candidate_name: str

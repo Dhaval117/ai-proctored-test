@@ -21,6 +21,8 @@ export default function ExamPage() {
     warningMessage, 
     isPaused,
     setIsPaused,
+    allowToggle,
+    proctoringEnabled,
     dismissWarning,
     handleViolation
   } = useProctor(sessionId)
@@ -99,17 +101,29 @@ export default function ExamPage() {
             <span className="text-yellow-500">
               Violations: {violationCount} / {maxViolations}
             </span>
-            <button
-              onClick={() => setIsPaused(!isPaused)}
-              className={`px-2.5 py-0.5 rounded text-xs font-semibold border transition-all cursor-pointer ${
-                isPaused
-                  ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40 hover:bg-yellow-500/30'
-                  : 'bg-green-500/20 text-green-300 border-green-500/40 hover:bg-green-500/30'
-              }`}
-              title="Click to Pause/Resume Proctoring Checks during development"
-            >
-              Proctoring: {isPaused ? 'PAUSED (DEV)' : 'ACTIVE'}
-            </button>
+            {allowToggle ? (
+              <button
+                onClick={() => setIsPaused(!isPaused)}
+                className={`px-2.5 py-0.5 rounded text-xs font-semibold border transition-all cursor-pointer ${
+                  isPaused
+                    ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40 hover:bg-yellow-500/30'
+                    : 'bg-green-500/20 text-green-300 border-green-500/40 hover:bg-green-500/30'
+                }`}
+                title="Click to Pause/Resume Proctoring Checks during development"
+              >
+                Proctoring: {isPaused ? 'PAUSED (DEV)' : 'ACTIVE'}
+              </button>
+            ) : (
+              <span
+                className={`px-2.5 py-0.5 rounded text-xs font-semibold border ${
+                  !proctoringEnabled
+                    ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40'
+                    : 'bg-green-500/20 text-green-300 border-green-500/40'
+                }`}
+              >
+                Proctoring: {!proctoringEnabled ? 'DISABLED (SERVER)' : 'ACTIVE'}
+              </span>
+            )}
           </div>
 
           <ExamDashboard sessionId={sessionId!} />

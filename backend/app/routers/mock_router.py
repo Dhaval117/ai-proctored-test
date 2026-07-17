@@ -20,6 +20,7 @@ from app.schemas import (
     LogEventResponse,
     NextAction,
     ProctoringLogEntry,
+    ProctoringConfigResponse,
     QAEntry,
     QuestionResponse,
     SessionDetail,
@@ -29,6 +30,7 @@ from app.schemas import (
     ViolationType,
 )
 from app import mock_data
+from app.config import MAX_VIOLATIONS, PROCTORING_ENABLED, ALLOW_PROCTORING_TOGGLE
 
 router = APIRouter()
 
@@ -40,6 +42,15 @@ NOW = datetime.now(timezone.utc)
 # ─────────────────────────────────────────────
 # PROCTORING ROUTES
 # ─────────────────────────────────────────────
+
+@router.get("/api/proctoring/config", response_model=ProctoringConfigResponse, tags=["proctoring"])
+def get_proctoring_config():
+    """Return current server proctoring configuration settings."""
+    return ProctoringConfigResponse(
+        proctoring_enabled=PROCTORING_ENABLED,
+        allow_toggle=ALLOW_PROCTORING_TOGGLE,
+    )
+
 
 # Violation counter lives in app.state so TestClient instances are isolated per test.
 
@@ -54,13 +65,22 @@ def log_proctoring_event(session_id: uuid.UUID, body: LogEventRequest, request: 
     if sid not in request.app.state.mock_violations:
         request.app.state.mock_violations[sid] = 0
 
+    if not PROCTORING_ENABLED:
+        count = request.app.state.mock_violations[sid]
+        return LogEventResponse(
+            violation_count=count,
+            max_violations=MAX_VIOLATIONS,
+            session_status=ExamStatus.ACTIVE,
+            warning_message="Proctoring checks are disabled on the server.",
+        )
+
     # Only count MEDIUM/HIGH severity violations toward the 3-warning policy.
     # LOW severity events (background noise, brief noise spikes) are logged but don't suspend.
     if body.severity in (SeverityLevel.MEDIUM, SeverityLevel.HIGH):
         request.app.state.mock_violations[sid] += 1
 
     count = request.app.state.mock_violations[sid]
-    max_v = 3
+    max_v = MAX_VIOLATIONS
 
     if count >= max_v:
         return LogEventResponse(

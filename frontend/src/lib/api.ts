@@ -91,6 +91,11 @@ export interface LogEventResponse {
   warning_message: string
 }
 
+export interface ProctoringConfigResponse {
+  proctoring_enabled: boolean
+  allow_toggle: boolean
+}
+
 // ─────────────────────────────────────────────
 // HTTP helper
 // ─────────────────────────────────────────────
@@ -185,6 +190,9 @@ export const api = {
     request<SubmitAnswerResponse>('POST', `/api/sessions/${sessionId}/submit-answer`, body),
 
   // Proctoring
+  getProctoringConfig: () =>
+    request<ProctoringConfigResponse>('GET', '/api/proctoring/config'),
+
   logEvent: (sessionId: string, body: LogEventRequest) =>
     request<LogEventResponse>('POST', `/api/sessions/${sessionId}/log-event`, body),
 }
