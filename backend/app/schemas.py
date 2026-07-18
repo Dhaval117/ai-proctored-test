@@ -130,7 +130,7 @@ class QuestionResponse(BaseModel):
     sequence_number: int
     is_follow_up: bool
     main_question_number: int
-    total_main_questions: int = 5
+    total_main_questions: int
 
 
 class SubmitAnswerResponse(BaseModel):
@@ -142,7 +142,7 @@ class SubmitAnswerResponse(BaseModel):
 
 class LogEventResponse(BaseModel):
     violation_count: int
-    max_violations: int = 3
+    max_violations: int
     session_status: ExamStatus
     warning_message: str
 

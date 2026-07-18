@@ -9,6 +9,7 @@ interface ExamDashboardProps {
 export function ExamDashboard({ sessionId }: ExamDashboardProps) {
   const [currentQuestion, setCurrentQuestion] = useState('')
   const [questionNumber, setQuestionNumber] = useState(1)
+  const [totalQuestions, setTotalQuestions] = useState(0)
   const [isFollowUp, setIsFollowUp] = useState(false)
 
   const [isLoading, setIsLoading] = useState(true)
@@ -37,6 +38,9 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
       setCurrentQuestion(data.question_text)
       setQuestionNumber(data.main_question_number)
       setIsFollowUp(data.is_follow_up)
+      if (data.total_main_questions) {
+        setTotalQuestions(data.total_main_questions)
+      }
 
       // Auto-speak the question
       speak(data.question_text)
@@ -115,7 +119,7 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="badge badge-primary">
-              Question {questionNumber} / 10
+              Question {questionNumber} / {totalQuestions}
             </span>
             {isFollowUp && (
               <span className="badge bg-purple-500/20 text-purple-300 border border-purple-500/30">

@@ -1,5 +1,6 @@
 from .state import InterviewState
 from .llm import get_llm, ProcessAnswerResult
+from app.config import MAX_MAIN_QUESTIONS, MAX_FOLLOW_UPS_PER_QUESTION
 
 def init_question_node(state: InterviewState) -> dict:
     llm = get_llm()
@@ -32,11 +33,11 @@ def process_answer_node(state: InterviewState) -> dict:
     latest_ai_q = ai_msgs[-1]["content"] if ai_msgs else ""
     latest_user_a = user_msgs[-1]["content"] if user_msgs else ""
     
-    prompt = f"""You are an expert technical interviewer evaluating the candidate's response during Question #{current_q_num} of a 5-question interview.
+    prompt = f"""You are an expert technical interviewer evaluating the candidate's response during Question #{current_q_num} of a {MAX_MAIN_QUESTIONS}-question interview.
 
 Current Interview Status:
-- Main Question Number: {current_q_num} of 5
-- Follow-up Questions asked for Question #{current_q_num} so far: {followup_cnt} of 2 max
+- Main Question Number: {current_q_num} of {MAX_MAIN_QUESTIONS}
+- Follow-up Questions asked for Question #{current_q_num} so far: {followup_cnt} of {MAX_FOLLOW_UPS_PER_QUESTION} max
 
 Latest Exchange to Evaluate:
 AI Question: {latest_ai_q}
@@ -48,10 +49,10 @@ Full Conversation History:
 Task & Evaluation Rules:
 1. Score the candidate's overall performance on the current question topic (Question #{current_q_num} and any follow-ups asked for it) as an integer between 0 and 10 (0 = completely incorrect or unanswered, 10 = comprehensive and accurate answer).
 2. Decide the next action ('followup' or 'next_question'):
-   - CRITICAL RULE: Follow-up questions are NOT limited to the first question! You should ask up to 2 follow-up questions for EVERY main question (#1, #2, #3, #4, and #5) if required to probe deeper.
+   - CRITICAL RULE: Follow-up questions are NOT limited to the first question! You should ask up to {MAX_FOLLOW_UPS_PER_QUESTION} follow-up question(s) for EVERY main question if required to probe deeper.
    - Currently, {followup_cnt} follow-up question(s) have been asked for Question #{current_q_num}.
-   - Since {followup_cnt} < 2: If the candidate's answer could be probed deeper, clarified, challenged with an edge case or real-world scenario, or is incomplete/superficial, you MUST recommend action 'followup'.
-   - Only recommend action 'next_question' if {followup_cnt} >= 2 OR if the candidate's answer is already exceptionally exhaustive and completely covers every nuance.
+   - Since {followup_cnt} < {MAX_FOLLOW_UPS_PER_QUESTION}: If the candidate's answer could be probed deeper, clarified, challenged with an edge case or real-world scenario, or is incomplete/superficial, you MUST recommend action 'followup'.
+   - Only recommend action 'next_question' if {followup_cnt} >= {MAX_FOLLOW_UPS_PER_QUESTION} OR if the candidate's answer is already exceptionally exhaustive and completely covers every nuance.
 3. Provide internal feedback on the candidate's answer and the numeric score (0 to 10)."""
 
     result = llm.invoke(prompt)
@@ -61,7 +62,7 @@ Task & Evaluation Rules:
     except (ValueError, TypeError):
         score = 8
     
-    if result.action == "followup" and state.get("followup_count", 0) < 2:
+    if result.action == "followup" and state.get("followup_count", 0) < MAX_FOLLOW_UPS_PER_QUESTION:
         return {"current_topic": result.feedback, "last_score": score}
     else:
         return {"current_topic": "next_question_requested", "last_score": score}
@@ -77,7 +78,7 @@ Full Conversation History:
 {history_text}
 
 We have asked {followup_cnt} follow-up question(s) so far for Question #{current_q_num}.
-Ask follow-up question #{followup_cnt + 1} (out of 2 max) for Question #{current_q_num} to probe deeper into the candidate's last answer or test an edge case/real-world application. Address the evaluation feedback: '{state.get('current_topic', '')}'. Output ONLY the follow-up question text. Do not include introductory remarks."""
+Ask follow-up question #{followup_cnt + 1} (out of {MAX_FOLLOW_UPS_PER_QUESTION} max) for Question #{current_q_num} to probe deeper into the candidate's last answer or test an edge case/real-world application. Address the evaluation feedback: '{state.get('current_topic', '')}'. Output ONLY the follow-up question text. Do not include introductory remarks."""
 
     response = llm.invoke(prompt)
     content = response.content

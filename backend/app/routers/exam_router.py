@@ -6,6 +6,7 @@ from app.database import get_db
 from app import crud
 from app.orchestrator import exam_graph
 from app.schemas import QuestionResponse, SubmitAnswerRequest, SubmitAnswerResponse, NextAction
+from app.config import MAX_MAIN_QUESTIONS
 
 router = APIRouter(prefix="/api/sessions", tags=["exam"])
 
@@ -67,7 +68,7 @@ def get_next_question(session_id: uuid.UUID, db: Session = Depends(get_db)):
         sequence_number=seq_num,
         is_follow_up=is_followup,
         main_question_number=state.values.get("question_count", 1),
-        total_main_questions=5
+        total_main_questions=MAX_MAIN_QUESTIONS
     )
 
 @router.post("/{session_id}/submit-answer", response_model=SubmitAnswerResponse)
