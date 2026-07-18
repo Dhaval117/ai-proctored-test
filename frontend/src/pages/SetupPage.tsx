@@ -93,21 +93,23 @@ export default function SetupPage() {
   return (
     <div className="min-h-dvh gradient-bg flex flex-col items-center justify-center p-6 sm:p-10 animate-fade-in">
       {/* Header */}
-      <div className="mb-10 text-center">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl"
-          style={{ background: 'var(--color-brand-500)', boxShadow: 'var(--glow-brand)' }}>
-          <Cpu className="h-8 w-8 text-white" strokeWidth={1.5} />
+      <div className="mb-2 text-center">
+        <div className="flex items-center justify-center gap-3.5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl"
+            style={{ background: 'var(--color-brand-500)', boxShadow: 'var(--glow-brand)' }}>
+            <Cpu className="h-7 w-7 text-white" strokeWidth={1.5} />
+          </div>
+          <h1 className="gradient-text text-4xl font-bold tracking-tight">ProctorAI</h1>
         </div>
-        <h1 className="gradient-text text-4xl font-bold tracking-tight">ProctorAI</h1>
-        <p className="mt-3 text-sm" style={{ color: 'var(--color-surface-400)' }}>
+        <p className="mt-1 text-sm" style={{ color: 'var(--color-surface-400)' }}>
           AI-Powered Verbal Examination Platform
         </p>
       </div>
 
       {/* Card */}
-      <div className="glass-card w-full max-w-lg p-8 sm:p-10">
-        <h2 className="mb-2 text-xl font-bold">Candidate Information</h2>
-        <p className="mb-8 text-sm" style={{ color: 'var(--color-surface-400)' }}>
+      <div className="glass-card w-full max-w-lg pt-3 sm:pt-4 px-8 sm:px-10 pb-3 sm:pb-4">
+        <h2 className="mb-1 text-xl font-bold">Candidate Information</h2>
+        <p className="mb-4 text-sm" style={{ color: 'var(--color-surface-400)' }}>
           Please fill in your details to begin the system check.
         </p>
 
@@ -174,7 +176,7 @@ export default function SetupPage() {
               <p className="mt-1 text-xs" style={{ color: 'var(--color-danger)' }}>{errors.language}</p>
             )}
             {/* Quick-pick chips */}
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" style={{ marginTop: '8px' }}>
               {TECH_CHIPS.map(tech => (
                 <button
                   key={tech}
@@ -209,7 +211,7 @@ export default function SetupPage() {
               <BarChart2 className="h-3.5 w-3.5" />
               Years of Experience
             </label>
-            <div className="grid grid-cols-5 gap-2.5">
+            <div className="grid grid-cols-5 gap-2.5" style={{ marginTop: '8px' }}>
               {EXPERIENCE_OPTIONS.map(opt => (
                 <button
                   key={opt.value}
@@ -238,7 +240,7 @@ export default function SetupPage() {
           </div>
 
           {/* Submit */}
-          <div className="pt-2">
+          <div className="pt-0">
             <button
               id="setup-submit"
               type="submit"
@@ -253,7 +255,7 @@ export default function SetupPage() {
       </div>
 
       {/* Footer note */}
-      <p className="mt-8 text-center text-xs" style={{ color: 'var(--color-surface-400)' }}>
+      <p className="mt-1 text-center text-xs" style={{ color: 'var(--color-surface-400)' }}>
         Your information is used solely for this examination session.
       </p>
     </div>

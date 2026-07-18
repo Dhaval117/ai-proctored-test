@@ -175,8 +175,8 @@ a:hover {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: var(--radius-lg);
-  padding: clamp(32px, 5vw, 48px);
-  margin: 24px auto;
+  padding: clamp(16px, 3vw, 24px);
+  margin: 8px auto;
 }
 
 /* Gradient text */
@@ -304,6 +304,7 @@ a:hover {
 
 /* Input */
 .input-field {
+  display: block;
   width: 100%;
   padding: 14px 20px;
   background: var(--color-surface-800);
