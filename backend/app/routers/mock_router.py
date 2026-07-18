@@ -7,36 +7,21 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Request
 
 from app.schemas import (
-    AdminSessionDetailResponse,
-    AdminSessionListResponse,
-    AdminSessionSummary,
     ExamStatus,
     LogEventRequest,
     LogEventResponse,
-    NextAction,
-    ProctoringLogEntry,
     ProctoringConfigResponse,
-    QAEntry,
-    QuestionResponse,
-    SessionDetail,
     SeverityLevel,
-    SubmitAnswerRequest,
-    SubmitAnswerResponse,
-    ViolationType,
 )
-from app import mock_data
 from app.config import MAX_VIOLATIONS, PROCTORING_ENABLED, ALLOW_PROCTORING_TOGGLE
 
 router = APIRouter()
 
 NOW = datetime.now(timezone.utc)
-
-
 
 
 # ─────────────────────────────────────────────
@@ -91,8 +76,8 @@ def log_proctoring_event(session_id: uuid.UUID, body: LogEventRequest, request: 
         )
 
     messages = {
-        1: "Warning 1 of 3: This activity is not permitted. Please return to the exam.",
-        2: "Warning 2 of 3: This is not permitted. One more violation will suspend your exam.",
+        1: f"Warning 1 of {max_v}: This activity is not permitted. Please return to the exam.",
+        2: f"Warning 2 of {max_v}: This is not permitted. One more violation will suspend your exam.",
     }
     return LogEventResponse(
         violation_count=count,

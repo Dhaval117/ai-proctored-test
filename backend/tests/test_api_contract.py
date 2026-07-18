@@ -22,6 +22,7 @@ os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 from app.main import app  # noqa: E402
 from app.database import Base, get_db  # noqa: E402
 from app.mock_data import QUESTION_ID  # noqa: E402
+from app.config import MAX_MAIN_QUESTIONS  # noqa: E402
 
 # ─────────────────────────────────────────────
 # Test DB Setup & Dependency Override
@@ -236,7 +237,7 @@ class TestGetNextQuestion:
         body = r.json()
         assert "question_id" in body
         assert "question_text" in body
-        assert body["total_main_questions"] == 5
+        assert body["total_main_questions"] == MAX_MAIN_QUESTIONS
 
     def test_unknown_session_returns_404(self, client):
         r = client.get("/api/sessions/00000000-0000-0000-0000-000000000000/next-question")

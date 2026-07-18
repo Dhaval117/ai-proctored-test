@@ -2,10 +2,11 @@ from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from .state import InterviewState
 from .nodes import init_question_node, process_answer_node, generate_followup_node, generate_next_question_node
+from app.config import MAX_MAIN_QUESTIONS
 
 def route_after_process(state: InterviewState) -> str:
     if state.get("current_topic") == "next_question_requested":
-        if state.get("question_count", 0) >= 5:
+        if state.get("question_count", 0) >= MAX_MAIN_QUESTIONS:
             return "end"
         return "next_question"
     return "followup"
