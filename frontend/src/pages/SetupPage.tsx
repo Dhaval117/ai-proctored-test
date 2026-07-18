@@ -23,17 +23,17 @@ const TECH_CHIPS = [
 ]
 
 const EXPERIENCE_OPTIONS = [
-  { label: '< 1 year',   value: 0 },
-  { label: '1–2 years',  value: 1 },
-  { label: '3–5 years',  value: 3 },
-  { label: '5–8 years',  value: 5 },
-  { label: '8+ years',   value: 8 },
+  { label: '< 1 year', value: 0 },
+  { label: '1–2 years', value: 1 },
+  { label: '3–5 years', value: 3 },
+  { label: '5–8 years', value: 5 },
+  { label: '8+ years', value: 8 },
 ]
 
 export interface CandidateFormData {
-  name:             string
-  email:            string
-  language:         string
+  name: string
+  email: string
+  language: string
   experience_years: number
 }
 
@@ -43,9 +43,9 @@ export default function SetupPage() {
   const navigate = useNavigate()
 
   const [form, setForm] = useState<CandidateFormData>({
-    name:             '',
-    email:            '',
-    language:         '',
+    name: '',
+    email: '',
+    language: '',
     experience_years: 1,
   })
   const [errors, setErrors] = useState<Partial<Record<keyof CandidateFormData, string>>>({})
@@ -55,13 +55,13 @@ export default function SetupPage() {
 
   function validate(): boolean {
     const next: typeof errors = {}
-    if (!form.name.trim())                next.name     = 'Full name is required.'
-    else if (form.name.trim().length < 2) next.name     = 'Name must be at least 2 characters.'
-    if (!form.email.trim())               next.email    = 'Email address is required.'
+    if (!form.name.trim()) next.name = 'Full name is required.'
+    else if (form.name.trim().length < 2) next.name = 'Name must be at least 2 characters.'
+    if (!form.email.trim()) next.email = 'Email address is required.'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-                                          next.email    = 'Enter a valid email address.'
-    if (!form.language.trim())            next.language = 'Select or type a technology.'
-    if (form.experience_years < 0)        next.experience_years = 'Select your experience level.'
+      next.email = 'Enter a valid email address.'
+    if (!form.language.trim()) next.language = 'Select or type a technology.'
+    if (form.experience_years < 0) next.experience_years = 'Select your experience level.'
     setErrors(next)
     return Object.keys(next).length === 0
   }
@@ -91,31 +91,31 @@ export default function SetupPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-dvh gradient-bg flex flex-col items-center justify-center p-6 animate-fade-in">
+    <div className="min-h-dvh gradient-bg flex flex-col items-center justify-center p-6 sm:p-10 animate-fade-in">
       {/* Header */}
-      <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
+      <div className="mb-10 text-center">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl"
           style={{ background: 'var(--color-brand-500)', boxShadow: 'var(--glow-brand)' }}>
           <Cpu className="h-8 w-8 text-white" strokeWidth={1.5} />
         </div>
         <h1 className="gradient-text text-4xl font-bold tracking-tight">ProctorAI</h1>
-        <p className="mt-2 text-sm" style={{ color: 'var(--color-surface-400)' }}>
+        <p className="mt-3 text-sm" style={{ color: 'var(--color-surface-400)' }}>
           AI-Powered Verbal Examination Platform
         </p>
       </div>
 
       {/* Card */}
-      <div className="glass-card w-full max-w-lg p-8">
-        <h2 className="mb-1 text-xl font-bold">Candidate Information</h2>
-        <p className="mb-6 text-sm" style={{ color: 'var(--color-surface-400)' }}>
+      <div className="glass-card w-full max-w-lg p-8 sm:p-10">
+        <h2 className="mb-2 text-xl font-bold">Candidate Information</h2>
+        <p className="mb-8 text-sm" style={{ color: 'var(--color-surface-400)' }}>
           Please fill in your details to begin the system check.
         </p>
 
-        <form id="setup-form" onSubmit={handleSubmit} noValidate className="space-y-5">
+        <form id="setup-form" onSubmit={handleSubmit} noValidate className="space-y-7">
 
           {/* Full Name */}
-          <div>
-            <label htmlFor="setup-name" className="mb-1.5 flex items-center gap-1.5 text-sm font-medium"
+          <div className="form-field">
+            <label htmlFor="setup-name" className="mb-2 flex items-center gap-2 text-sm font-medium"
               style={{ color: 'var(--color-surface-200)' }}>
               <User className="h-3.5 w-3.5" />
               Full Name
@@ -135,8 +135,8 @@ export default function SetupPage() {
           </div>
 
           {/* Email */}
-          <div>
-            <label htmlFor="setup-email" className="mb-1.5 flex items-center gap-1.5 text-sm font-medium"
+          <div className="form-field">
+            <label htmlFor="setup-email" className="mb-2 flex items-center gap-2 text-sm font-medium"
               style={{ color: 'var(--color-surface-200)' }}>
               <Mail className="h-3.5 w-3.5" />
               Email Address
@@ -156,8 +156,8 @@ export default function SetupPage() {
           </div>
 
           {/* Technology */}
-          <div>
-            <label htmlFor="setup-language" className="mb-1.5 flex items-center gap-1.5 text-sm font-medium"
+          <div className="form-field">
+            <label htmlFor="setup-language" className="mb-2 flex items-center gap-2 text-sm font-medium"
               style={{ color: 'var(--color-surface-200)' }}>
               <Code2 className="h-3.5 w-3.5" />
               Technology / Language
@@ -174,7 +174,7 @@ export default function SetupPage() {
               <p className="mt-1 text-xs" style={{ color: 'var(--color-danger)' }}>{errors.language}</p>
             )}
             {/* Quick-pick chips */}
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div className="mt-3 flex flex-wrap gap-2">
               {TECH_CHIPS.map(tech => (
                 <button
                   key={tech}
@@ -185,15 +185,15 @@ export default function SetupPage() {
                   style={
                     form.language === tech
                       ? {
-                          background: 'var(--color-brand-500)',
-                          borderColor: 'var(--color-brand-500)',
-                          color: 'white',
-                        }
+                        background: 'var(--color-brand-500)',
+                        borderColor: 'var(--color-brand-500)',
+                        color: 'white',
+                      }
                       : {
-                          background: 'transparent',
-                          borderColor: 'var(--color-surface-600)',
-                          color: 'var(--color-surface-400)',
-                        }
+                        background: 'transparent',
+                        borderColor: 'var(--color-surface-600)',
+                        color: 'var(--color-surface-400)',
+                      }
                   }
                 >
                   {tech}
@@ -203,13 +203,13 @@ export default function SetupPage() {
           </div>
 
           {/* Experience */}
-          <div>
-            <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium"
+          <div className="form-field">
+            <label className="mb-2 flex items-center gap-2 text-sm font-medium"
               style={{ color: 'var(--color-surface-200)' }}>
               <BarChart2 className="h-3.5 w-3.5" />
               Years of Experience
             </label>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-2.5">
               {EXPERIENCE_OPTIONS.map(opt => (
                 <button
                   key={opt.value}
@@ -220,15 +220,15 @@ export default function SetupPage() {
                   style={
                     form.experience_years === opt.value
                       ? {
-                          background: 'hsl(230 65% 52% / 0.2)',
-                          borderColor: 'var(--color-brand-500)',
-                          color: 'var(--color-brand-300)',
-                        }
+                        background: 'hsl(230 65% 52% / 0.2)',
+                        borderColor: 'var(--color-brand-500)',
+                        color: 'var(--color-brand-300)',
+                      }
                       : {
-                          background: 'var(--color-surface-800)',
-                          borderColor: 'var(--color-surface-700)',
-                          color: 'var(--color-surface-400)',
-                        }
+                        background: 'var(--color-surface-800)',
+                        borderColor: 'var(--color-surface-700)',
+                        color: 'var(--color-surface-400)',
+                      }
                   }
                 >
                   {opt.label}
@@ -238,20 +238,22 @@ export default function SetupPage() {
           </div>
 
           {/* Submit */}
-          <button
-            id="setup-submit"
-            type="submit"
-            disabled={submitting}
-            className="btn-primary w-full mt-2"
-          >
-            {submitting ? 'Saving…' : 'Continue to System Check'}
-            {!submitting && <ChevronRight className="h-4 w-4" />}
-          </button>
+          <div className="pt-2">
+            <button
+              id="setup-submit"
+              type="submit"
+              disabled={submitting}
+              className="btn-primary w-full"
+            >
+              {submitting ? 'Saving…' : 'Continue to System Check'}
+              {!submitting && <ChevronRight className="h-4 w-4" />}
+            </button>
+          </div>
         </form>
       </div>
 
       {/* Footer note */}
-      <p className="mt-6 text-center text-xs" style={{ color: 'var(--color-surface-400)' }}>
+      <p className="mt-8 text-center text-xs" style={{ color: 'var(--color-surface-400)' }}>
         Your information is used solely for this examination session.
       </p>
     </div>
