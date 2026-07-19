@@ -24,7 +24,6 @@ import { useNavigate } from 'react-router-dom'
 import {
   Camera,
   Mic,
-  ShieldCheck,
   CheckCircle2,
   XCircle,
   Loader2,
@@ -117,7 +116,7 @@ function HandshakeRow({
   return (
     <div style={{
       display:    'flex', alignItems: 'center', gap: '12px',
-      padding:    '12px 16px',
+      padding:    '10px 14px',
       borderRadius: '10px',
       background: 'var(--color-surface-800)',
       border:     `1px solid ${status === 'success' ? 'hsl(145 65% 42% / 0.25)' : status === 'error' ? 'hsl(0 70% 55% / 0.25)' : 'var(--color-surface-700)'}`,
@@ -150,7 +149,7 @@ function CardHeader({
   badge?: React.ReactNode
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
       <div style={{
         width: '38px', height: '38px', borderRadius: '10px',
         background: 'hsl(230 65% 52% / 0.12)',
@@ -174,7 +173,7 @@ function CardHeader({
 function StepProgress({ current }: { current: Step }) {
   const idx = STEPS.findIndex(s => s.id === current)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', marginBottom: '40px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
       {/* Pill track */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {STEPS.map((s, i) => {
@@ -375,21 +374,12 @@ export default function SystemCheckPage() {
         flexDirection:  'column',
         alignItems:     'center',
         justifyContent: 'center',
-        padding:        '40px 24px',
+        padding:        '16px 24px',
       }}
     >
       {/* ── Page header ── */}
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <div style={{
-          width: '64px', height: '64px', borderRadius: '18px',
-          background: 'hsl(145 65% 14%)',
-          border:     '1px solid hsl(145 65% 42% / 0.35)',
-          display:    'flex', alignItems: 'center', justifyContent: 'center',
-          margin:     '0 auto 16px',
-        }}>
-          <ShieldCheck style={{ width: '28px', height: '28px', color: 'var(--color-success)' }} strokeWidth={1.5} />
-        </div>
-        <h1 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '8px' }}>System Check</h1>
+      <div style={{ textAlign: 'center', marginBottom: '14px' }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '4px' }}>System Check</h1>
         <p style={{ fontSize: '0.875rem', color: 'var(--color-surface-400)', maxWidth: '360px', margin: '0 auto' }}>
           Verify your hardware and connection before starting the exam.
         </p>
@@ -402,7 +392,7 @@ export default function SystemCheckPage() {
           STEP 1: Camera
           ══════════════════════════════════════════════════════════════════════ */}
       {currentStep === 'camera' && (
-        <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '32px' }}>
+        <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '20px 24px' }}>
           <CardHeader
             icon={Camera}
             title="Camera Check"
@@ -416,7 +406,7 @@ export default function SystemCheckPage() {
             borderRadius: '14px', overflow: 'hidden',
             background: 'var(--color-surface-900)',
             border:     '1px solid var(--color-surface-700)',
-            marginBottom: '24px',
+            marginBottom: '14px',
           }}>
             <video
               ref={videoRef}
@@ -489,7 +479,7 @@ export default function SystemCheckPage() {
           STEP 2: Microphone
           ══════════════════════════════════════════════════════════════════════ */}
       {currentStep === 'microphone' && (
-        <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '32px' }}>
+        <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '20px 24px' }}>
           <CardHeader
             icon={Mic}
             title="Microphone Check"
@@ -500,9 +490,9 @@ export default function SystemCheckPage() {
           <div style={{
             borderRadius: '14px', background: 'var(--color-surface-900)',
             border: '1px solid var(--color-surface-700)',
-            padding: '28px 24px', marginBottom: '24px',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
-            minHeight: '148px', justifyContent: 'center',
+            padding: '18px 20px', marginBottom: '14px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
+            minHeight: '116px', justifyContent: 'center',
           }}>
             {micState === 'granted' ? (
               <>
@@ -576,7 +566,7 @@ export default function SystemCheckPage() {
           STEP 3: Photo Capture
           ══════════════════════════════════════════════════════════════════════ */}
       {currentStep === 'photo' && (
-        <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '32px' }}>
+        <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '20px 24px' }}>
           <CardHeader
             icon={User}
             title="Reference Photo"
@@ -586,13 +576,13 @@ export default function SystemCheckPage() {
 
           {/* Preview box */}
           <div style={{
-            position: 'relative', aspectRatio: '4/3',
+            position: 'relative', aspectRatio: '16/9',
             borderRadius: '14px', overflow: 'hidden',
             background: 'var(--color-surface-900)',
             border: photoPreview
               ? '2px solid hsl(145 65% 42% / 0.6)'
               : '1px solid var(--color-surface-700)',
-            marginBottom: '16px',
+            marginBottom: '14px',
             transition: 'border-color 300ms ease',
           }}>
             {photoPreview ? (
@@ -646,7 +636,7 @@ export default function SystemCheckPage() {
             <div style={{
               display: 'flex', alignItems: 'flex-start', gap: '10px',
               background: 'hsl(0 70% 12%)', border: '1px solid hsl(0 70% 35% / 0.5)',
-              borderRadius: '10px', padding: '12px 14px', marginBottom: '16px',
+              borderRadius: '10px', padding: '10px 12px', marginBottom: '12px',
             }}>
               <AlertCircle style={{ width: '16px', height: '16px', color: 'var(--color-danger)', flexShrink: 0, marginTop: '1px' }} />
               <div>
@@ -661,7 +651,7 @@ export default function SystemCheckPage() {
           )}
 
           {!photoPreview && (
-            <ul style={{ marginBottom: '20px', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <ul style={{ marginBottom: '14px', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {[
                 'Centre your face inside the oval guide',
                 'Ensure the room is well-lit',
@@ -714,7 +704,7 @@ export default function SystemCheckPage() {
           STEP 4: Network & Backend Handshake
           ══════════════════════════════════════════════════════════════════════ */}
       {currentStep === 'network' && (
-        <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '32px' }}>
+        <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '20px 24px' }}>
           <CardHeader
             icon={Wifi}
             title="Connection & Setup"
@@ -725,8 +715,8 @@ export default function SystemCheckPage() {
           <div style={{
             borderRadius: '14px', background: 'var(--color-surface-900)',
             border: '1px solid var(--color-surface-700)',
-            padding: '20px 20px 16px',
-            marginBottom: '16px',
+            padding: '14px 16px 12px',
+            marginBottom: '12px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
               <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-surface-200)' }}>
@@ -755,7 +745,7 @@ export default function SystemCheckPage() {
             </div>
 
             {/* Live ping bar chart */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '48px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '40px', marginBottom: '10px' }}>
               {Array.from({ length: 5 }, (_, i) => {
                 const sample = networkCheck._pingSamples[i]
                 const hasSample = sample !== undefined
@@ -766,7 +756,7 @@ export default function SystemCheckPage() {
                 return (
                   <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                     <div style={{
-                      width: '100%', height: '36px',
+                      width: '100%', height: '28px',
                       display: 'flex', alignItems: 'flex-end',
                     }}>
                       <div style={{
@@ -805,7 +795,7 @@ export default function SystemCheckPage() {
           </div>
 
           {/* ── Handshake rows ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
             <HandshakeRow
               label="Register Candidate"
               status={networkCheck.createStatus}
@@ -833,7 +823,7 @@ export default function SystemCheckPage() {
             <div style={{
               display: 'flex', alignItems: 'flex-start', gap: '10px',
               background: 'hsl(0 70% 12%)', border: '1px solid hsl(0 70% 35% / 0.5)',
-              borderRadius: '10px', padding: '12px 14px', marginBottom: '20px',
+              borderRadius: '10px', padding: '10px 12px', marginBottom: '12px',
             }}>
               <AlertCircle style={{ width: '16px', height: '16px', color: 'var(--color-danger)', flexShrink: 0, marginTop: '1px' }} />
               <div>
@@ -872,7 +862,7 @@ export default function SystemCheckPage() {
         id="btn-back-to-setup"
         type="button"
         style={{
-          marginTop: '24px', display: 'flex', alignItems: 'center', gap: '6px',
+          marginTop: '14px', display: 'flex', alignItems: 'center', gap: '6px',
           fontSize: '0.875rem', color: 'var(--color-surface-400)',
           background: 'none', border: 'none', cursor: 'pointer',
           transition: 'color var(--transition-fast)', padding: '4px 8px',
