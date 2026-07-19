@@ -36,9 +36,11 @@ import {
 import { api, type SessionReport, type QATranscriptItem, type ProctoringLogItem } from '../lib/api'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useAdminReportStyles } from './AdminReportPage.styles'
+import { useCommonStyles } from './common.styles'
 
 export default function AdminReportPage() {
   const styles = useAdminReportStyles()
+  const commonStyles = useCommonStyles()
   const { id } = useParams<{ id: string }>()
   const [report, setReport] = useState<SessionReport | null>(null)
   const [activeTab, setActiveTab] = useState<'transcript' | 'proctoring'>('transcript')
@@ -62,7 +64,7 @@ export default function AdminReportPage() {
   if (isLoading) {
     return (
       <div className={`${styles.loadingBox} animate-fade-in`}>
-        <div className={styles.topToggle}>
+        <div className={commonStyles.topToggle}>
           <ThemeToggle />
         </div>
         <Spinner size="large" label="Loading Candidate Audit Report..." />
@@ -73,7 +75,7 @@ export default function AdminReportPage() {
   if (error || !report) {
     return (
       <div className={`${styles.errorBox} animate-fade-in`}>
-        <div className={styles.topToggle}>
+        <div className={commonStyles.topToggle}>
           <ThemeToggle />
         </div>
         <Card className={`${styles.errorCard} shadow-md`}>
@@ -84,7 +86,7 @@ export default function AdminReportPage() {
           <Text className={styles.errorText}>
             {error || 'Session report not found'}
           </Text>
-          <Link to="/admin" className={styles.linkNoUnderline}>
+          <Link to="/admin" className={commonStyles.linkNoUnderline}>
             <Button appearance="primary" size="large" icon={<ArrowLeft20Regular />} className={styles.errorBackBtn}>
               Back to Admin Sessions
             </Button>
@@ -143,15 +145,15 @@ export default function AdminReportPage() {
   }
 
   return (
-    <div className={`${styles.pageContainer} animate-fade-in`}>
-      <div className={styles.topToggle}>
+    <div className={`${commonStyles.pageContainer} animate-fade-in`}>
+      <div className={commonStyles.topToggle}>
         <ThemeToggle />
       </div>
 
       <div className={styles.mainWrapper}>
         {/* Nav Back */}
         <div>
-          <Link to="/admin" className={styles.linkNoUnderline}>
+          <Link to="/admin" className={commonStyles.linkNoUnderline}>
             <Button appearance="subtle" icon={<ArrowLeft20Regular />} className={styles.backBtn}>
               Back to Admin Sessions List
             </Button>

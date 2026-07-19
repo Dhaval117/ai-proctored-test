@@ -1,24 +1,6 @@
 import { makeStyles, shorthands, tokens } from '@fluentui/react-components'
 
 export const useExamStyles = makeStyles({
-  pageContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100dvh',
-    ...shorthands.padding('24px'),
-    '@media (min-width: 768px)': {
-      ...shorthands.padding('40px'),
-    },
-    position: 'relative',
-  },
-  topToggle: {
-    position: 'absolute',
-    top: '24px',
-    right: '24px',
-    zIndex: 10,
-  },
   suspendedCard: {
     maxWidth: '512px',
     width: '100%',

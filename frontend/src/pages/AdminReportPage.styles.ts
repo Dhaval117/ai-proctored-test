@@ -1,20 +1,6 @@
 import { makeStyles, shorthands, tokens } from '@fluentui/react-components'
 
 export const useAdminReportStyles = makeStyles({
-  pageContainer: {
-    minHeight: '100dvh',
-    ...shorthands.padding('24px'),
-    '@media (min-width: 768px)': {
-      ...shorthands.padding('40px'),
-    },
-    position: 'relative',
-  },
-  topToggle: {
-    position: 'absolute',
-    top: '24px',
-    right: '24px',
-    zIndex: 10,
-  },
   loadingBox: {
     minHeight: '100dvh',
     display: 'flex',
@@ -67,6 +53,7 @@ export const useAdminReportStyles = makeStyles({
     fontWeight: 600,
   },
   mainWrapper: {
+    width: '100%',
     maxWidth: '1152px',
     ...shorthands.margin('0px', 'auto'),
     display: 'flex',
@@ -296,8 +283,5 @@ export const useAdminReportStyles = makeStyles({
   iconLg: {
     width: '32px',
     height: '32px',
-  },
-  linkNoUnderline: {
-    textDecoration: 'none',
   },
 })

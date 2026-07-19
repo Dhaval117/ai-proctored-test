@@ -40,6 +40,7 @@ import { validateReferencePhoto, ensureFaceApiModelsLoaded } from '../lib/photoV
 import { SETUP_STORAGE_KEY, type CandidateFormData } from './SetupPage'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useSystemCheckStyles } from './SystemCheckPage.styles'
+import { useCommonStyles } from './common.styles'
 
 export const PHOTO_STORAGE_KEY = 'proctor_photo'
 
@@ -135,8 +136,8 @@ function CardHeaderSection({
     <div className={styles.sectionHeader}>
       <div className={styles.sectionIconBox}>{icon}</div>
       <div className={styles.sectionTitleBox}>
-        <Title3 className={styles.sectionTitle}>{title}</Title3>
-        <Text className={styles.sectionSubtitle}>{subtitle}</Text>
+        <Text className={styles.sectionTitle}>{title}</Text>
+        <Text className={styles.sectionSubtitle} size={200}>{subtitle}</Text>
       </div>
       {statusState && <StatusIcon state={statusState} />}
       {badge}
@@ -192,7 +193,6 @@ function StepProgress({ current }: { current: Step }) {
               >
                 {s.label}
               </Text>
-              {isDone && <CheckmarkCircle20Filled className={styles.stepCheckIcon} />}
             </div>
           )
         })}
@@ -210,6 +210,7 @@ const QUALITY_CONFIG = {
 
 export default function SystemCheckPage() {
   const styles = useSystemCheckStyles()
+  const commonStyles = useCommonStyles()
   const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement>(null)
 
@@ -323,17 +324,20 @@ export default function SystemCheckPage() {
   }, [navigate, networkCheck.sessionId, stopAll])
 
   return (
-    <div className={`${styles.pageContainer} animate-fade-in`}>
-      <div className={styles.topToggle}>
+    <div className={`${commonStyles.pageContainer} animate-fade-in`}>
+      <div className={commonStyles.topToggle}>
         <ThemeToggle />
       </div>
+      {/* Header */}
+      <div className={commonStyles.headerBox}>
+        <div className={commonStyles.logoRow}>
+          <div className={commonStyles.logoIconBox}>
+            <ShieldCheckmark24Filled className={commonStyles.logoIcon} />
 
-      <div className={styles.headerWrapper}>
-        <div className={styles.headerIconBox}>
-          <ShieldCheckmark24Filled />
+          </div>
+          <Title1 align="center">System Check</Title1>
         </div>
-        <Title1 className={styles.headerTitle}>System Check</Title1>
-        <Text className={styles.headerSubtitle}>
+        <Text className={commonStyles.subtext}>
           Verify your hardware and connection before starting the exam.
         </Text>
       </div>
@@ -342,7 +346,7 @@ export default function SystemCheckPage() {
 
       {/* STEP 1: Camera */}
       {currentStep === 'camera' && (
-        <Card className={`${styles.card} animate-fade-in shadow-lg`}>
+        <Card className={`${commonStyles.mainCard} animate-fade-in shadow-lg`}>
           <CardHeaderSection
             icon={<Camera20Regular />}
             title="Camera Check"
@@ -395,7 +399,7 @@ export default function SystemCheckPage() {
               id="btn-enable-camera"
               appearance="primary"
               size="large"
-              className={styles.fullWidthBtn}
+              className={commonStyles.fullWidthButton}
               onClick={requestCamera}
               icon={<Camera20Regular />}
             >
@@ -412,7 +416,7 @@ export default function SystemCheckPage() {
               id="btn-camera-next"
               appearance="primary"
               size="large"
-              className={styles.fullWidthBtn}
+              className={commonStyles.fullWidthButton}
               onClick={handleCameraNext}
               icon={<ArrowRight20Filled />}
               iconPosition="after"
@@ -425,7 +429,7 @@ export default function SystemCheckPage() {
 
       {/* STEP 2: Microphone */}
       {currentStep === 'microphone' && (
-        <Card className={`${styles.card} animate-fade-in shadow-lg`}>
+        <Card className={`${commonStyles.mainCard} animate-fade-in shadow-lg`}>
           <CardHeaderSection
             icon={<Mic20Regular />}
             title="Microphone Check"
@@ -436,7 +440,7 @@ export default function SystemCheckPage() {
           <div className={styles.micBox}>
             {micState === 'granted' ? (
               <>
-                <div className={styles.wFull}>
+                <div className={commonStyles.wFull}>
                   <VolumeBar level={volumeLevel} />
                 </div>
                 <Text className={styles.overlayTextNeutral}>
@@ -492,7 +496,7 @@ export default function SystemCheckPage() {
               id="btn-enable-mic"
               appearance="primary"
               size="large"
-              className={styles.fullWidthBtn}
+              className={commonStyles.fullWidthButton}
               onClick={requestMic}
               icon={<Mic20Regular />}
             >
@@ -509,7 +513,7 @@ export default function SystemCheckPage() {
               id="btn-mic-next"
               appearance="primary"
               size="large"
-              className={styles.fullWidthBtn}
+              className={commonStyles.fullWidthButton}
               onClick={handleMicNext}
               disabled={volumeLevel === 0}
               icon={volumeLevel > 0 ? <ArrowRight20Filled /> : undefined}
@@ -523,7 +527,7 @@ export default function SystemCheckPage() {
 
       {/* STEP 3: Photo Capture */}
       {currentStep === 'photo' && (
-        <Card className={`${styles.card} animate-fade-in shadow-lg`}>
+        <Card className={`${commonStyles.mainCard} animate-fade-in shadow-lg`}>
           <CardHeaderSection
             icon={<Person20Regular />}
             title="Reference Photo"
@@ -599,7 +603,7 @@ export default function SystemCheckPage() {
               id="btn-capture-photo"
               appearance="primary"
               size="large"
-              className={styles.fullWidthBtn}
+              className={commonStyles.fullWidthButton}
               onClick={handleCapture}
               disabled={isValidatingPhoto}
               icon={isValidatingPhoto ? <Spinner size="extra-tiny" /> : <Person20Regular />}
@@ -621,7 +625,7 @@ export default function SystemCheckPage() {
 
       {/* STEP 4: Network & Backend Handshake */}
       {currentStep === 'network' && (
-        <Card className={`${styles.card} animate-fade-in shadow-lg`}>
+        <Card className={`${commonStyles.mainCard} animate-fade-in shadow-lg`}>
           <CardHeaderSection
             icon={<Wifi2Regular />}
             title="Connection & Setup"
@@ -748,7 +752,7 @@ export default function SystemCheckPage() {
               id="btn-start-exam"
               appearance="primary"
               size="large"
-              className={styles.fullWidthBtn}
+              className={commonStyles.fullWidthButton}
               onClick={handleStartExam}
               icon={<Play20Filled />}
             >
@@ -759,7 +763,7 @@ export default function SystemCheckPage() {
               id="btn-retry-network"
               appearance="secondary"
               size="large"
-              className={styles.fullWidthBtn}
+              className={commonStyles.fullWidthButton}
               onClick={startNetworkCheck}
               icon={<ArrowCounterclockwise20Regular />}
             >

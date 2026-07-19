@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Card,
   Title1,
-  Title2,
+  Title3,
   Text,
   Input,
   Button,
@@ -29,6 +29,7 @@ import {
 } from '@fluentui/react-icons'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useSetupStyles } from './SetupPage.styles'
+import { useCommonStyles } from './common.styles'
 
 const TECH_CHIPS = [
   'Python',
@@ -71,6 +72,7 @@ interface FormErrors {
 
 export default function SetupPage() {
   const styles = useSetupStyles()
+  const commonStyles = useCommonStyles()
   const navigate = useNavigate()
 
   const [form, setForm] = useState<FormData>({
@@ -128,28 +130,28 @@ export default function SetupPage() {
   }
 
   return (
-    <div className={styles.pageContainer}>
-      <div className={styles.topToggle}>
+    <div className={commonStyles.pageContainer}>
+      <div className={commonStyles.topToggle}>
         <ThemeToggle />
       </div>
 
       {/* Header */}
-      <div className={styles.headerBox}>
-        <div className={styles.logoRow}>
-          <div className={styles.logoIconBox}>
-            <Desktop24Filled className={styles.logoIcon} />
+      <div className={commonStyles.headerBox}>
+        <div className={commonStyles.logoRow}>
+          <div className={commonStyles.logoIconBox}>
+            <Desktop24Filled className={commonStyles.logoIcon} />
           </div>
           <Title1 align="center">ProctorAI</Title1>
         </div>
-        <Text className={styles.subtext}>
+        <Text className={commonStyles.subtext}>
           AI-Powered Verbal Examination Platform
         </Text>
       </div>
 
       {/* Main Card */}
-      <Card className={styles.mainCard}>
+      <Card className={commonStyles.mainCard}>
         <div className={styles.cardHeaderBox}>
-          <Title2 className={styles.cardTitle}>Candidate Information</Title2>
+          <Title3 className={styles.cardTitle}>Candidate Information</Title3>
           <Text size={300} className={styles.cardSubtitle}>
             Please fill in your details to begin the system check.
           </Text>
@@ -266,7 +268,7 @@ export default function SetupPage() {
                 disabled={!isFormValid || submitting}
                 icon={!submitting ? <ArrowRight20Filled /> : undefined}
                 iconPosition="after"
-                className={styles.submitBtn}
+                className={commonStyles.fullWidthButton}
               >
                 {submitting ? 'Saving…' : 'Continue to System Check'}
               </Button>

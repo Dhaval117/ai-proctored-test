@@ -1,71 +1,15 @@
 import { makeStyles, shorthands, tokens } from '@fluentui/react-components'
 
 export const useSystemCheckStyles = makeStyles({
-  pageContainer: {
-    minHeight: '100dvh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shorthands.padding('40px', '24px'),
-    position: 'relative',
-  },
-  topToggle: {
-    position: 'absolute',
-    top: '24px',
-    right: '24px',
-    zIndex: 10,
-  },
-  headerWrapper: {
-    textAlign: 'center',
-    marginBottom: '28px',
-  },
-  headerIconBox: {
-    width: '56px',
-    height: '56px',
-    ...shorthands.borderRadius(tokens.borderRadiusXLarge),
-    backgroundColor: tokens.colorBrandBackground2,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shorthands.margin('0', 'auto', '12px', 'auto'),
-    color: tokens.colorBrandForeground2,
-  },
-  headerTitle: {
-    display: 'block',
-    fontWeight: 800,
-    marginBottom: '6px',
-  },
-  headerSubtitle: {
-    color: tokens.colorNeutralForeground3,
-    maxWidth: '380px',
-    display: 'block',
-    ...shorthands.margin('0', 'auto'),
-  },
-  card: {
-    width: '100%',
-    maxWidth: '520px',
-    ...shorthands.padding('28px'),
-    ...shorthands.borderRadius(tokens.borderRadiusXLarge),
-    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke1),
-    backgroundColor: tokens.colorNeutralBackground1,
-  },
-  wFull: {
-    width: '100%',
-  },
-  fullWidthBtn: {
-    width: '100%',
-    fontWeight: 600,
-  },
   backBtn: {
-    marginTop: '20px',
+    marginTop: tokens.spacingVerticalS,
     color: tokens.colorNeutralForeground3,
   },
   // Volume bar
   volumeBarContainer: {
     display: 'flex',
     alignItems: 'flex-end',
-    ...shorthands.gap('3px'),
+    gap: tokens.spacingHorizontalXXS,
     height: '48px',
   },
   volumeBarItem: {
@@ -85,7 +29,7 @@ export const useSystemCheckStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     ...shorthands.gap('12px'),
-    ...shorthands.padding('12px', '16px'),
+    padding: tokens.spacingHorizontalS,
     ...shorthands.borderRadius(tokens.borderRadiusMedium),
     backgroundColor: tokens.colorNeutralBackground2,
     transition: 'border-color 300ms ease',
@@ -118,7 +62,7 @@ export const useSystemCheckStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     ...shorthands.gap('12px'),
-    marginBottom: '20px',
+    marginBottom: tokens.spacingVerticalXXS,
   },
   sectionIconBox: {
     width: '40px',
@@ -137,10 +81,9 @@ export const useSystemCheckStyles = makeStyles({
   },
   sectionTitle: {
     display: 'block',
-    ...shorthands.margin(0),
+    fontWeight: 600
   },
   sectionSubtitle: {
-    fontSize: '13px',
     color: tokens.colorNeutralForeground3,
     ...shorthands.margin(0),
   },
@@ -149,8 +92,8 @@ export const useSystemCheckStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    ...shorthands.gap('14px'),
-    marginBottom: '32px',
+    gap: tokens.spacingHorizontalS,
+    marginBottom: tokens.spacingVerticalL,
   },
   stepDotsRow: {
     display: 'flex',
@@ -231,12 +174,6 @@ export const useSystemCheckStyles = makeStyles({
     color: tokens.colorNeutralForeground4,
     whiteSpace: 'nowrap',
   },
-  stepCheckIcon: {
-    width: '14px',
-    height: '14px',
-    marginTop: '2px',
-    color: tokens.colorPaletteGreenForeground1,
-  },
   // Step 1: Camera
   cameraPreviewBox: {
     position: 'relative',
@@ -245,7 +182,8 @@ export const useSystemCheckStyles = makeStyles({
     ...shorthands.overflow('hidden'),
     backgroundColor: tokens.colorNeutralBackground3,
     ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
-    marginBottom: '20px',
+    marginBottom: tokens.spacingVerticalS,
+    height: '318px'
   },
   videoFull: {
     width: '100%',
@@ -302,12 +240,12 @@ export const useSystemCheckStyles = makeStyles({
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
     ...shorthands.padding('24px'),
-    marginBottom: '20px',
+    marginBottom: tokens.spacingVerticalS,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     ...shorthands.gap('16px'),
-    minHeight: '148px',
+    height: '318px',
     justifyContent: 'center',
   },
   micIconLarge: {
@@ -348,7 +286,7 @@ export const useSystemCheckStyles = makeStyles({
     ...shorthands.borderRadius(tokens.borderRadiusMedium),
     ...shorthands.overflow('hidden'),
     backgroundColor: tokens.colorNeutralBackground3,
-    marginBottom: '16px',
+    height: '250px'
   },
   photoPreviewBoxIdle: {
     ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
@@ -393,37 +331,34 @@ export const useSystemCheckStyles = makeStyles({
   photoErrorBox: {
     display: 'flex',
     alignItems: 'flex-start',
-    ...shorthands.gap('10px'),
+    gap: tokens.spacingHorizontalXS,
     backgroundColor: tokens.colorPaletteRedBackground1,
-    ...shorthands.border('1px', 'solid', tokens.colorPaletteRedBorder1),
-    ...shorthands.borderRadius(tokens.borderRadiusMedium),
-    ...shorthands.padding('12px', '14px'),
-    marginBottom: '16px',
+    padding: tokens.spacingHorizontalS,
+    border: `1px solid ${tokens.colorPaletteRedBorder1}`,
+    borderRadius: tokens.borderRadiusMedium,
+    color: tokens.colorPaletteRedForeground1,
+
   },
   photoErrorTitle: {
     display: 'block',
-    fontSize: '13px',
+    fontSize: tokens.fontSizeBase200,
     fontWeight: 600,
-    color: tokens.colorPaletteRedForeground1,
   },
   photoErrorText: {
     display: 'block',
-    fontSize: '12px',
-    color: tokens.colorPaletteRedForeground1,
+    fontSize: tokens.fontSizeBase200,
   },
   tipsList: {
-    marginBottom: '20px',
-    ...shorthands.padding(0),
     listStyleType: 'none',
     display: 'flex',
     flexDirection: 'column',
-    ...shorthands.gap('6px'),
+    gap: tokens.spacingVerticalXXS,
   },
   tipsListItem: {
     display: 'flex',
     alignItems: 'flex-start',
-    ...shorthands.gap('8px'),
-    fontSize: '13px',
+    gap: tokens.spacingHorizontalS,
+    fontSize: tokens.fontSizeBase200,
     color: tokens.colorNeutralForeground3,
   },
   tipsListBullet: {
@@ -444,14 +379,14 @@ export const useSystemCheckStyles = makeStyles({
     ...shorthands.borderRadius(tokens.borderRadiusMedium),
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
-    ...shorthands.padding('20px'),
-    marginBottom: '16px',
+    padding: tokens.spacingHorizontalL,
+    marginBottom: tokens.spacingVerticalS,
   },
   networkHeaderRow: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: '14px',
+    marginBottom: '22px',
   },
   networkHeaderTitle: {
     fontSize: '13px',
@@ -520,7 +455,7 @@ export const useSystemCheckStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     ...shorthands.gap('8px'),
-    marginBottom: '24px',
+    marginBottom: tokens.spacingVerticalS,
   },
   networkErrorBox: {
     display: 'flex',
@@ -530,6 +465,6 @@ export const useSystemCheckStyles = makeStyles({
     ...shorthands.border('1px', 'solid', tokens.colorPaletteRedBorder1),
     ...shorthands.borderRadius(tokens.borderRadiusMedium),
     ...shorthands.padding('12px', '14px'),
-    marginBottom: '20px',
+    marginBottom: tokens.spacingVerticalS,
   },
 })

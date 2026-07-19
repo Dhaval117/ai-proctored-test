@@ -30,9 +30,11 @@ import { useFaceDetection } from '../hooks/useFaceDetection'
 import { ExamDashboard } from '../components/ExamDashboard'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useExamStyles } from './ExamPage.styles'
+import { useCommonStyles } from './common.styles'
 
 export default function ExamPage() {
   const styles = useExamStyles()
+  const commonStyles = useCommonStyles()
   const { id: sessionId } = useParams<{ id: string }>()
 
   const {
@@ -86,8 +88,8 @@ export default function ExamPage() {
 
   if (status === 'SUSPENDED') {
     return (
-      <div className={`${styles.pageContainer} animate-fade-in`}>
-        <div className={styles.topToggle}>
+      <div className={`${commonStyles.pageContainer} animate-fade-in`}>
+        <div className={commonStyles.topToggle}>
           <ThemeToggle />
         </div>
 
@@ -111,8 +113,8 @@ export default function ExamPage() {
 
   return (
     <>
-      <div className={`${styles.pageContainer} animate-fade-in`}>
-        <div className={styles.topToggle}>
+      <div className={`${commonStyles.pageContainer} animate-fade-in`}>
+        <div className={commonStyles.topToggle}>
           <ThemeToggle />
         </div>
 

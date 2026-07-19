@@ -1,21 +1,8 @@
 import { makeStyles, shorthands, tokens } from '@fluentui/react-components'
 
 export const useAdminStyles = makeStyles({
-  pageContainer: {
-    minHeight: '100dvh',
-    ...shorthands.padding('24px'),
-    '@media (min-width: 768px)': {
-      ...shorthands.padding('40px'),
-    },
-    position: 'relative',
-  },
-  topToggle: {
-    position: 'absolute',
-    top: '24px',
-    right: '24px',
-    zIndex: 10,
-  },
   mainWrapper: {
+    width: '100%',
     maxWidth: '1280px',
     ...shorthands.margin('0px', 'auto'),
     display: 'flex',
@@ -67,9 +54,6 @@ export const useAdminStyles = makeStyles({
     '@media (min-width: 768px)': {
       gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
     },
-  },
-  wFull: {
-    width: '100%',
   },
   errorAlert: {
     ...shorthands.padding('14px', '18px'),
@@ -168,9 +152,6 @@ export const useAdminStyles = makeStyles({
   actionsCell: {
     ...shorthands.padding('16px', '20px'),
     textAlign: 'right',
-  },
-  linkNoUnderline: {
-    textDecoration: 'none',
   },
   actionBtn: {
     fontWeight: 600,

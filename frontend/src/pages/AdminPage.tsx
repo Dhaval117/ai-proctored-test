@@ -36,9 +36,11 @@ import {
 import { api, type AdminSessionSummary } from '../lib/api'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useAdminStyles } from './AdminPage.styles'
+import { useCommonStyles } from './common.styles'
 
 export default function AdminPage() {
   const styles = useAdminStyles()
+  const commonStyles = useCommonStyles()
   const [sessions, setSessions] = useState<AdminSessionSummary[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [page, setPage] = useState(1)
@@ -135,8 +137,8 @@ export default function AdminPage() {
   }
 
   return (
-    <div className={`${styles.pageContainer} animate-fade-in`}>
-      <div className={styles.topToggle}>
+    <div className={`${commonStyles.pageContainer} animate-fade-in`}>
+      <div className={commonStyles.topToggle}>
         <ThemeToggle />
       </div>
 
@@ -178,7 +180,7 @@ export default function AdminPage() {
                 placeholder="Search candidate by name or email..."
                 value={searchQuery}
                 onChange={(_, data) => setSearchQuery(data.value)}
-                className={styles.wFull}
+                className={commonStyles.wFull}
               />
             </div>
 
@@ -191,7 +193,7 @@ export default function AdminPage() {
                   setStatusFilter(e.target.value)
                   setPage(1)
                 }}
-                className={styles.wFull}
+                className={commonStyles.wFull}
               >
                 <option value="">All Exam Statuses</option>
                 <option value="ACTIVE">ACTIVE</option>
@@ -212,7 +214,7 @@ export default function AdminPage() {
                   setPage(1)
                   fetchSessions()
                 }}
-                className={styles.wFull}
+                className={commonStyles.wFull}
               />
               <Button type="submit" appearance="primary" size="large" icon={<Filter20Regular />} title="Apply Filters" />
             </div>
@@ -232,7 +234,7 @@ export default function AdminPage() {
         {/* Table Card */}
         <Card className={`${styles.tableCard} shadow-md overflow-hidden`}>
           <div className="overflow-x-auto">
-            <Table aria-label="Admin sessions list" className={styles.wFull}>
+            <Table aria-label="Admin sessions list" className={commonStyles.wFull}>
               <TableHeader className={styles.tableHeader}>
                 <TableRow>
                   <TableHeaderCell className={styles.tableHeaderCellCandidate}>Candidate</TableHeaderCell>
@@ -304,7 +306,7 @@ export default function AdminPage() {
                       </TableCell>
 
                       <TableCell className={styles.actionsCell}>
-                        <Link to={`/admin/sessions/${s.session_id}`} className={styles.linkNoUnderline}>
+                        <Link to={`/admin/sessions/${s.session_id}`} className={commonStyles.linkNoUnderline}>
                           <Button appearance="secondary" size="small" icon={<DocumentText20Regular />} className={styles.actionBtn}>
                             View Report
                           </Button>
