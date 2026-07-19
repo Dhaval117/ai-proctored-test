@@ -103,8 +103,8 @@ function HandshakeRow({
     status === 'success'
       ? `${styles.handshakeRow} ${styles.handshakeRowSuccess}`
       : status === 'error'
-      ? `${styles.handshakeRow} ${styles.handshakeRowError}`
-      : `${styles.handshakeRow} ${styles.handshakeRowNeutral}`
+        ? `${styles.handshakeRow} ${styles.handshakeRowError}`
+        : `${styles.handshakeRow} ${styles.handshakeRowNeutral}`
 
   return (
     <div className={rowClass}>
@@ -160,8 +160,8 @@ function StepProgress({ current }: { current: Step }) {
                   isDone
                     ? styles.stepDotDone
                     : isActive
-                    ? styles.stepDotActive
-                    : styles.stepDotIdle
+                      ? styles.stepDotActive
+                      : styles.stepDotIdle
                 }
               />
               {i < STEPS.length - 1 && (
@@ -186,8 +186,8 @@ function StepProgress({ current }: { current: Step }) {
                   isActive
                     ? styles.stepLabelActive
                     : isDone
-                    ? styles.stepLabelDone
-                    : styles.stepLabelIdle
+                      ? styles.stepLabelDone
+                      : styles.stepLabelIdle
                 }
               >
                 {s.label}
@@ -274,7 +274,7 @@ export default function SystemCheckPage() {
       if (!validation.valid) {
         setPhotoError(
           validation.reason ||
-            'Reference photo rejected. Please align your face inside the oval guide and ensure clear lighting.'
+          'Reference photo rejected. Please align your face inside the oval guide and ensure clear lighting.'
         )
         return
       }
@@ -443,8 +443,8 @@ export default function SystemCheckPage() {
                   {volumeLevel < 5
                     ? 'Speak into your microphone to test…'
                     : volumeLevel < 35
-                    ? '🎤 Detecting voice…'
-                    : '✅ Microphone is working!'}
+                      ? '🎤 Detecting voice…'
+                      : '✅ Microphone is working!'}
                 </Text>
                 <div className={styles.volumeBadge}>
                   <span className={styles.volumeBadgeLabel}>Volume</span>
@@ -455,8 +455,8 @@ export default function SystemCheckPage() {
                         volumeLevel > 35
                           ? tokens.colorPaletteGreenForeground1
                           : volumeLevel > 10
-                          ? tokens.colorPaletteYellowForeground1
-                          : tokens.colorNeutralForeground3,
+                            ? tokens.colorPaletteYellowForeground1
+                            : tokens.colorNeutralForeground3,
                     }}
                   >
                     {volumeLevel}%
@@ -538,9 +538,8 @@ export default function SystemCheckPage() {
           />
 
           <div
-            className={`${styles.photoPreviewBox} ${
-              photoPreview ? styles.photoPreviewBoxCaptured : styles.photoPreviewBoxIdle
-            }`}
+            className={`${styles.photoPreviewBox} ${photoPreview ? styles.photoPreviewBoxCaptured : styles.photoPreviewBoxIdle
+              }`}
           >
             {photoPreview ? (
               <img
@@ -713,10 +712,10 @@ export default function SystemCheckPage() {
                 networkCheck.createStatus === 'running'
                   ? 'Creating exam session…'
                   : networkCheck.createStatus === 'success'
-                  ? 'Session registered successfully'
-                  : networkCheck.createStatus === 'error'
-                  ? 'Failed to register session'
-                  : 'Waiting…'
+                    ? 'Session registered successfully'
+                    : networkCheck.createStatus === 'error'
+                      ? 'Failed to register session'
+                      : 'Waiting…'
               }
             />
             <HandshakeRow
@@ -726,10 +725,10 @@ export default function SystemCheckPage() {
                 networkCheck.verifyStatus === 'running'
                   ? 'Uploading your photo…'
                   : networkCheck.verifyStatus === 'success'
-                  ? 'Identity verified — session is ACTIVE'
-                  : networkCheck.verifyStatus === 'error'
-                  ? 'Photo upload failed'
-                  : 'Waiting for session registration…'
+                    ? 'Identity verified — session is ACTIVE'
+                    : networkCheck.verifyStatus === 'error'
+                      ? 'Photo upload failed'
+                      : 'Waiting for session registration…'
               }
             />
           </div>
