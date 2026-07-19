@@ -1,12 +1,31 @@
 import { useEffect, useState } from 'react'
-import { Mic, Square, Send, Loader2, Volume2, CheckCircle } from 'lucide-react'
+import {
+  Card,
+  Title2,
+  Title3,
+  Text,
+  Textarea,
+  Button,
+  Badge,
+  Spinner,
+  tokens,
+} from '@fluentui/react-components'
+import {
+  Mic20Filled,
+  RecordStop20Filled,
+  Send20Filled,
+  Speaker220Regular,
+  CheckmarkCircle24Filled,
+} from '@fluentui/react-icons'
 import { useSpeech } from '../hooks/useSpeech'
+import { useExamDashboardStyles } from './ExamDashboard.styles'
 
 interface ExamDashboardProps {
   sessionId: string
 }
 
 export function ExamDashboard({ sessionId }: ExamDashboardProps) {
+  const styles = useExamDashboardStyles()
   const [currentQuestion, setCurrentQuestion] = useState('')
   const [questionNumber, setQuestionNumber] = useState(1)
   const [totalQuestions, setTotalQuestions] = useState(0)
@@ -24,10 +43,9 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
     speak,
     startRecording,
     stopRecording,
-    setTranscript
+    setTranscript,
   } = useSpeech()
 
-  // Fetch the next question
   const fetchNextQuestion = async () => {
     try {
       setIsLoading(true)
@@ -42,7 +60,6 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
         setTotalQuestions(data.total_main_questions)
       }
 
-      // Auto-speak the question
       speak(data.question_text)
     } catch (err) {
       console.error(err)
@@ -52,7 +69,6 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
     }
   }
 
-  // Initial load
   useEffect(() => {
     fetchNextQuestion()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -67,9 +83,9 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          question_id: '00000000-0000-0000-0000-000000000000', // We don't strictly use this in LangGraph logic yet
-          transcribed_text: transcript
-        })
+          question_id: '00000000-0000-0000-0000-000000000000',
+          transcribed_text: transcript,
+        }),
       })
 
       if (!res.ok) throw new Error('Failed to submit answer')
@@ -78,7 +94,6 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
       if (data.next_action === 'EXAM_COMPLETE') {
         setExamComplete(true)
       } else {
-        // Fetch the next question
         setTranscript('')
         await fetchNextQuestion()
       }
@@ -91,120 +106,123 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
 
   if (examComplete) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 animate-fade-in text-center mt-10">
-        <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Exam Complete</h2>
-        <p className="text-surface-300">
+      <div className={`${styles.completeBox} animate-fade-in`}>
+        <div className={styles.completeIconBox}>
+          <CheckmarkCircle24Filled className={styles.iconLg} />
+        </div>
+        <Title2 className={styles.completeTitle}>Exam Complete</Title2>
+        <Text className={styles.completeText}>
           Thank you for completing the interview. Your results have been saved.
-        </p>
+        </Text>
       </div>
     )
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-8 animate-fade-in">
+    <div className={`${styles.dashboardContainer} animate-fade-in`}>
       {speechError && (
-        <div className="mb-4 p-3 bg-red-950 border border-red-900 text-red-400 rounded-lg text-sm">
+        <div className={styles.speechErrorBox}>
           {speechError}
         </div>
       )}
 
       {/* Question Card */}
-      <div className="glass-card p-6 mb-6 relative overflow-hidden">
-        {/* Subtle speaking indicator */}
+      <Card className={`${styles.questionCard} shadow-md`}>
         {isSpeaking && (
-          <div className="absolute top-0 left-0 w-full h-1 bg-brand-500 animate-pulse" />
+          <div className={styles.speakingProgressBar} />
         )}
 
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="badge badge-primary">
-              Question {questionNumber} / {totalQuestions}
-            </span>
+        <div className={styles.questionHeaderRow}>
+          <div className={styles.badgesGroup}>
+            <Badge appearance="tint" color="brand">
+              Question {questionNumber} / {totalQuestions || 5}
+            </Badge>
             {isFollowUp && (
-              <span className="badge bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              <Badge appearance="tint" color="important">
                 Follow-up
-              </span>
+              </Badge>
             )}
           </div>
 
-          <button
+          <Button
+            appearance="subtle"
+            icon={<Speaker220Regular style={{ color: isSpeaking ? tokens.colorBrandForeground1 : tokens.colorNeutralForeground3 }} />}
             onClick={() => speak(currentQuestion)}
             disabled={isSpeaking || isLoading}
-            className="p-2 rounded-full hover:bg-surface-800 text-surface-400 hover:text-white transition-colors"
             title="Repeat Question"
-          >
-            {isSpeaking ? <Volume2 className="h-5 w-5 animate-pulse text-brand-400" /> : <Volume2 className="h-5 w-5" />}
-          </button>
+          />
         </div>
 
-        <h3 className="text-xl font-medium leading-relaxed">
+        <Title3 className={styles.questionTitle}>
           {isLoading ? (
-            <div className="flex items-center gap-3 text-surface-400">
-              <Loader2 className="h-5 w-5 animate-spin" /> Loading next question...
-            </div>
+            <span className={styles.loadingRow}>
+              <Spinner size="tiny" /> Loading next question...
+            </span>
           ) : (
             currentQuestion
           )}
-        </h3>
-      </div>
+        </Title3>
+      </Card>
 
       {/* Transcription Area */}
-      <div className="glass-card p-6 border-brand-500/30 border transition-all duration-300 relative">
+      <Card className={`${styles.transcriptionCard} shadow-md`}>
         {isListening && (
-          <div className="absolute top-0 right-0 p-4">
-            <div className="flex items-center gap-2 text-red-500 text-xs font-medium animate-pulse">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-              </span>
-              RECORDING
-            </div>
+          <div className={styles.recordingBadge}>
+            <span className="pulse-dot" /> RECORDING
           </div>
         )}
 
-        <div className="mb-4 flex items-center justify-between">
-          <h4 className="font-medium text-surface-300">Your Answer</h4>
+        <div className={styles.yourAnswerWrapper}>
+          <Text className={styles.yourAnswerLabel}>Your Answer</Text>
         </div>
 
-        <textarea
+        <Textarea
           value={transcript}
-          onChange={(e) => setTranscript(e.target.value)}
-          placeholder={isListening ? "Listening..." : "Click 'Start Recording' or type your answer here..."}
-          className="w-full h-32 bg-surface-900/50 border border-surface-700 rounded-lg p-4 text-white placeholder-surface-500 focus:outline-none focus:border-brand-500 transition-colors resize-none"
+          onChange={(_, data) => setTranscript(data.value)}
+          placeholder={isListening ? 'Listening...' : "Click 'Start Recording' or type your answer here..."}
+          size="large"
           disabled={isLoading || isSubmitting}
+          className={styles.textareaFull}
         />
 
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex gap-3">
+        <div className={styles.actionsRow}>
+          <div className={styles.recordBtnsGroup}>
             {!isListening ? (
-              <button
+              <Button
+                appearance="secondary"
+                size="large"
+                icon={<Mic20Filled />}
                 onClick={startRecording}
                 disabled={isLoading || isSubmitting || isSpeaking}
-                className="btn-primary bg-surface-800 hover:bg-surface-700 text-white flex items-center gap-2"
+                className={styles.actionBtn}
               >
-                <Mic className="h-4 w-4" /> Start Recording
-              </button>
+                Start Recording
+              </Button>
             ) : (
-              <button
+              <Button
+                appearance="primary"
+                size="large"
+                icon={<RecordStop20Filled />}
                 onClick={stopRecording}
-                className="btn-primary bg-red-900/50 hover:bg-red-900 text-red-200 border border-red-800 flex items-center gap-2"
+                className={styles.actionBtn}
               >
-                <Square className="h-4 w-4" /> Stop Recording
-              </button>
+                Stop Recording
+              </Button>
             )}
           </div>
 
-          <button
+          <Button
+            appearance="primary"
+            size="large"
+            icon={isSubmitting ? <Spinner size="extra-tiny" /> : <Send20Filled />}
             onClick={handleSubmit}
             disabled={!transcript.trim() || isLoading || isSubmitting || isListening}
-            className="btn-primary flex items-center gap-2"
+            className={styles.actionBtn}
           >
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             Submit Answer
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

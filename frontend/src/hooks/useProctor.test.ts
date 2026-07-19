@@ -88,7 +88,7 @@ describe('useProctor', () => {
     const mockedLogEvent = vi.mocked(api.logEvent).mockResolvedValue({
       violation_count: 1,
       max_violations: 3,
-      status: 'ACTIVE',
+      session_status: 'ACTIVE',
       warning_message: 'Warning: Window blur'
     })
 
@@ -110,7 +110,7 @@ describe('useProctor', () => {
     const mockedLogEvent = vi.mocked(api.logEvent).mockResolvedValue({
       violation_count: 1,
       max_violations: 3,
-      status: 'ACTIVE',
+      session_status: 'ACTIVE',
       warning_message: 'Warning: Copying not allowed'
     })
 
@@ -130,7 +130,7 @@ describe('useProctor', () => {
     const mockedLogEvent = vi.mocked(api.logEvent).mockResolvedValue({
       violation_count: 1,
       max_violations: 3,
-      status: 'ACTIVE',
+      session_status: 'ACTIVE',
       warning_message: 'Warning: Developer tools'
     })
 
@@ -150,7 +150,7 @@ describe('useProctor', () => {
     const mockedLogEvent = vi.mocked(api.logEvent).mockResolvedValue({
       violation_count: 3,
       max_violations: 3,
-      status: 'SUSPENDED',
+      session_status: 'SUSPENDED',
       warning_message: null
     })
 
@@ -177,7 +177,7 @@ describe('useProctor', () => {
     vi.mocked(api.logEvent).mockResolvedValue({
       violation_count: 1,
       max_violations: 3,
-      status: 'ACTIVE',
+      session_status: 'ACTIVE',
       warning_message: null
     })
 

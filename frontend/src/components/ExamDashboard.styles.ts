@@ -1,0 +1,133 @@
+import { makeStyles, shorthands, tokens } from '@fluentui/react-components'
+
+export const useExamDashboardStyles = makeStyles({
+  completeBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shorthands.padding('32px'),
+    textAlign: 'center',
+    marginTop: '24px',
+  },
+  completeIconBox: {
+    width: '64px',
+    height: '64px',
+    ...shorthands.borderRadius(tokens.borderRadiusXLarge),
+    backgroundColor: tokens.colorPaletteGreenBackground1,
+    color: tokens.colorPaletteGreenForeground1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shorthands.margin('0px', 'auto', '16px', 'auto'),
+  },
+  completeTitle: {
+    display: 'block',
+    marginBottom: '8px',
+  },
+  completeText: {
+    color: tokens.colorNeutralForeground3,
+  },
+  dashboardContainer: {
+    width: '100%',
+    maxWidth: '672px',
+    ...shorthands.margin('24px', 'auto', '0px', 'auto'),
+    display: 'flex',
+    flexDirection: 'column',
+    ...shorthands.gap('24px'),
+  },
+  speechErrorBox: {
+    ...shorthands.padding('12px', '16px'),
+    ...shorthands.borderRadius(tokens.borderRadiusMedium),
+    backgroundColor: tokens.colorPaletteRedBackground1,
+    ...shorthands.border('1px', 'solid', tokens.colorPaletteRedBorder1),
+    color: tokens.colorPaletteRedForeground1,
+    fontSize: '13px',
+  },
+  questionCard: {
+    ...shorthands.padding('24px'),
+    ...shorthands.borderRadius(tokens.borderRadiusLarge),
+    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke1),
+    backgroundColor: tokens.colorNeutralBackground1,
+    position: 'relative',
+    ...shorthands.overflow('hidden'),
+  },
+  speakingProgressBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '3px',
+    backgroundColor: tokens.colorBrandBackground,
+  },
+  questionHeaderRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '16px',
+  },
+  badgesGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    ...shorthands.gap('8px'),
+  },
+  questionTitle: {
+    display: 'block',
+    fontWeight: 600,
+    lineHeight: 1.5,
+    color: tokens.colorNeutralForeground1,
+  },
+  transcriptionCard: {
+    ...shorthands.padding('24px'),
+    ...shorthands.borderRadius(tokens.borderRadiusLarge),
+    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke1),
+    backgroundColor: tokens.colorNeutralBackground1,
+    position: 'relative',
+  },
+  recordingBadge: {
+    position: 'absolute',
+    top: '16px',
+    right: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    ...shorthands.gap('8px'),
+    fontSize: '12px',
+    fontWeight: 600,
+    color: tokens.colorPaletteRedForeground1,
+  },
+  yourAnswerWrapper: {
+    marginBottom: '12px',
+  },
+  yourAnswerLabel: {
+    fontWeight: 600,
+    color: tokens.colorNeutralForeground2,
+  },
+  textareaFull: {
+    width: '100%',
+    minHeight: '130px',
+  },
+  actionsRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    ...shorthands.gap('16px'),
+    marginTop: '20px',
+  },
+  recordBtnsGroup: {
+    display: 'flex',
+    ...shorthands.gap('12px'),
+  },
+  actionBtn: {
+    fontWeight: 600,
+  },
+  loadingRow: {
+    display: 'flex',
+    alignItems: 'center',
+    ...shorthands.gap('12px'),
+  },
+  iconLg: {
+    width: '32px',
+    height: '32px',
+  },
+})

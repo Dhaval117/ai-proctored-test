@@ -1,14 +1,13 @@
 /**
- * DesktopGuard.tsx
+ * DesktopGuard.tsx (Refactored to Fluent UI v9)
  *
  * Story 2.1: Blocks any viewport narrower than 1024px (tablet / mobile).
  * The exam requires a wide screen for the camera feed + answer panel layout.
- *
- * Uses a window resize listener to reactively update on orientation changes.
  */
 
-import { useEffect, useState } from 'react'
-import { Monitor, AlertTriangle } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { Card, Title1, Text, tokens, makeStyles, shorthands } from '@fluentui/react-components'
+import { Desktop24Filled, Warning20Filled } from '@fluentui/react-icons'
 
 const MINIMUM_WIDTH = 1024
 
@@ -22,11 +21,114 @@ function useWindowWidth() {
   return width
 }
 
+const useStyles = makeStyles({
+  screenOverlay: {
+    position: 'fixed',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 9999,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shorthands.padding('24px'),
+    backgroundColor: tokens.colorNeutralBackground1,
+  },
+  card: {
+    maxWidth: '448px',
+    width: '100%',
+    ...shorthands.padding('32px'),
+    textAlign: 'center',
+    ...shorthands.borderRadius(tokens.borderRadiusXLarge),
+    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke1),
+    backgroundColor: tokens.colorNeutralBackground2,
+  },
+  iconBox: {
+    position: 'relative',
+    width: '72px',
+    height: '72px',
+    ...shorthands.borderRadius(tokens.borderRadiusLarge),
+    backgroundColor: tokens.colorPaletteYellowBackground1,
+    color: tokens.colorPaletteYellowForeground1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shorthands.margin('0', 'auto', '20px', 'auto'),
+  },
+  mainIcon: {
+    width: '36px',
+    height: '36px',
+  },
+  warningIcon: {
+    position: 'absolute',
+    top: '-4px',
+    right: '-4px',
+    width: '24px',
+    height: '24px',
+    color: tokens.colorPaletteYellowForeground1,
+  },
+  title: {
+    display: 'block',
+    fontWeight: 800,
+    marginBottom: '12px',
+  },
+  subtitle: {
+    display: 'block',
+    color: tokens.colorNeutralForeground2,
+    marginBottom: '24px',
+    fontSize: '14px',
+  },
+  boldText: {
+    color: tokens.colorNeutralForeground1,
+  },
+  widthBox: {
+    ...shorthands.padding('16px'),
+    ...shorthands.borderRadius(tokens.borderRadiusMedium),
+    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+    backgroundColor: tokens.colorNeutralBackground1,
+    marginBottom: '24px',
+  },
+  widthBoxLabel: {
+    display: 'block',
+    fontSize: '11px',
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    color: tokens.colorNeutralForeground4,
+    marginBottom: '4px',
+  },
+  widthBoxValue: {
+    display: 'block',
+    fontSize: '24px',
+    fontWeight: 800,
+    color: tokens.colorBrandForeground1,
+  },
+  list: {
+    listStyleType: 'none',
+    ...shorthands.padding(0),
+    ...shorthands.gap('10px'),
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  listItem: {
+    color: tokens.colorNeutralForeground3,
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '10px',
+  },
+  listBullet: {
+    color: tokens.colorPaletteYellowForeground1,
+    fontWeight: 700,
+  },
+})
+
 interface DesktopGuardProps {
   children: React.ReactNode
 }
 
 export default function DesktopGuard({ children }: DesktopGuardProps) {
+  const styles = useStyles()
   const width = useWindowWidth()
 
   if (width >= MINIMUM_WIDTH) {
@@ -34,70 +136,44 @@ export default function DesktopGuard({ children }: DesktopGuardProps) {
   }
 
   return (
-    <div
-      id="desktop-guard-screen"
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-8 gradient-bg"
-    >
-      {/* Decorative blobs */}
-      <div
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-        aria-hidden="true"
-      >
-        <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-brand-500/10 blur-3xl" />
-        <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl" />
-      </div>
-
-      <div className="glass-card relative z-10 max-w-sm w-full p-8 text-center animate-fade-in">
-        {/* Icon */}
-        <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-500/10 border border-amber-500/20">
-          <Monitor className="h-10 w-10 text-amber-400" strokeWidth={1.5} />
-          <AlertTriangle
-            className="absolute -right-2 -top-2 h-5 w-5 text-amber-400"
-            strokeWidth={2}
-          />
+    <div id="desktop-guard-screen" className={styles.screenOverlay}>
+      <Card className={styles.card}>
+        <div className={styles.iconBox}>
+          <Desktop24Filled className={styles.mainIcon} />
+          <Warning20Filled className={styles.warningIcon} />
         </div>
 
-        {/* Heading */}
-        <h1 className="mb-3 text-2xl font-bold tracking-tight">
+        <Title1 className={styles.title}>
           Desktop Required
-        </h1>
+        </Title1>
 
-        {/* Body */}
-        <p className="mb-6 text-sm leading-relaxed" style={{ color: 'var(--color-surface-400)' }}>
-          The ProctorAI examination system requires a desktop or laptop
-          with a minimum screen width of{' '}
-          <span className="font-semibold" style={{ color: 'var(--color-surface-200)' }}>
-            {MINIMUM_WIDTH}px
-          </span>
-          .
-        </p>
+        <Text className={styles.subtitle}>
+          The ProctorAI examination system requires a desktop or laptop with a minimum screen width of{' '}
+          <strong className={styles.boldText}>{MINIMUM_WIDTH}px</strong>.
+        </Text>
 
-        {/* Current width indicator */}
-        <div className="rounded-lg border p-3 mb-6"
-          style={{ borderColor: 'var(--color-surface-700)', background: 'var(--color-surface-800)' }}>
-          <p className="text-xs font-medium uppercase tracking-widest mb-1"
-            style={{ color: 'var(--color-surface-400)' }}>
-            Current screen width
-          </p>
-          <p className="text-2xl font-bold" style={{ color: 'var(--color-brand-400)' }}>
+        <div className={styles.widthBox}>
+          <Text className={styles.widthBoxLabel}>
+            Current Screen Width
+          </Text>
+          <Text className={styles.widthBoxValue}>
             {width}px
-          </p>
+          </Text>
         </div>
 
-        {/* Steps */}
-        <ul className="space-y-2 text-left text-sm" style={{ color: 'var(--color-surface-400)' }}>
+        <ul className={styles.list}>
           {[
             'Switch to a desktop or laptop computer',
             'Ensure your browser window is fully maximised',
             'Disable browser zoom-out that reduces effective width',
           ].map((tip) => (
-            <li key={tip} className="flex items-start gap-2">
-              <span className="mt-1 h-4 w-4 flex-shrink-0 text-amber-400">›</span>
-              {tip}
+            <li key={tip} className={styles.listItem}>
+              <span className={styles.listBullet}>›</span>
+              <span>{tip}</span>
             </li>
           ))}
         </ul>
-      </div>
+      </Card>
     </div>
   )
 }

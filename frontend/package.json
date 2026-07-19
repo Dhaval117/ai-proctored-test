@@ -11,6 +11,8 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
+    "@fluentui/react-components": "^9.74.4",
+    "@fluentui/react-icons": "^2.0.333",
     "@vladmandic/face-api": "^1.7.15",
     "lucide-react": "^1.17.0",
     "react": "^19.2.6",

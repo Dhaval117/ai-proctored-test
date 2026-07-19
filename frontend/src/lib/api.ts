@@ -43,7 +43,7 @@ export interface SessionDetail {
   violation_count: number
   risk_score: number
   created_at: string
-  completed_at: string | null
+  completed_at?: string | null
 }
 
 export type NextAction = 'FOLLOW_UP' | 'NEXT_QUESTION' | 'EXAM_COMPLETE'
@@ -88,7 +88,7 @@ export interface LogEventResponse {
   violation_count: number
   max_violations: number
   session_status: ExamStatus
-  warning_message: string
+  warning_message?: string | null
 }
 
 export interface ProctoringConfigResponse {
@@ -96,18 +96,45 @@ export interface ProctoringConfigResponse {
   allow_toggle: boolean
 }
 
+export interface QATranscriptItem {
+  question_id: string
+  sequence_number: number
+  question_text: string
+  answer_text?: string | null
+  is_follow_up: boolean
+  evaluation_score?: number | null
+  evaluation_feedback?: string | null
+  created_at?: string
+}
+
+export interface ProctoringLogItem {
+  id: string
+  event_type: ViolationType
+  severity: SeverityLevel
+  timestamp: string
+  warning_number?: number
+  snapshot?: string | null
+}
+
+export interface SessionReport {
+  session: SessionDetail
+  qa_transcript: QATranscriptItem[]
+  proctoring_logs: ProctoringLogItem[]
+}
+
 // ─────────────────────────────────────────────
 // HTTP helper
 // ─────────────────────────────────────────────
 
 class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly detail: unknown,
-    message: string,
-  ) {
+  public readonly status: number
+  public readonly detail: unknown
+
+  constructor(status: number, detail: unknown, message: string) {
     super(message)
     this.name = 'ApiError'
+    this.status = status
+    this.detail = detail
   }
 }
 

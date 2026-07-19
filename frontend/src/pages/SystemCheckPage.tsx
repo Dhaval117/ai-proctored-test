@@ -1,85 +1,75 @@
 /**
- * SystemCheckPage.tsx — Story 2.2 + 2.3
+ * SystemCheckPage.tsx — Story 2.2 + 2.3 (Refactored to Fluent UI v9)
  *
  * Four-step system check wizard:
  *   Step 1 — Camera:      Request webcam permission + live preview
  *   Step 2 — Microphone:  Request mic permission + Web Audio API volume bar
  *   Step 3 — Photo:       Capture reference portrait from webcam
  *   Step 4 — Network:     Ping latency check + session create + verify handshake
- *
- * On completion, stores the base64 reference photo in sessionStorage
- * and navigates to /exam/{session_id}.
- *
- * If candidate data is missing from sessionStorage (direct navigation),
- * redirects back to the setup page.
  */
 
-import {
-  useRef,
-  useEffect,
-  useState,
-  useCallback,
-} from 'react'
+import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Camera,
-  Mic,
-  ShieldCheck,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  ChevronRight,
-  RefreshCw,
-  User,
-  ArrowLeft,
-  Wifi,
-  AlertCircle,
-  Play,
-} from 'lucide-react'
+  Card,
+  Title1,
+  Title3,
+  Text,
+  Button,
+  Spinner,
+  Badge,
+  tokens,
+} from '@fluentui/react-components'
+import {
+  Camera20Regular,
+  Mic20Regular,
+  Person20Regular,
+  Wifi2Regular,
+  CheckmarkCircle20Filled,
+  DismissCircle20Filled,
+  ArrowRight20Filled,
+  ArrowLeft20Regular,
+  ArrowCounterclockwise20Regular,
+  Play20Filled,
+  ShieldCheckmark24Filled,
+} from '@fluentui/react-icons'
 
 import { useMediaCheck } from '../hooks/useMediaCheck'
-import { useNetworkCheck } from '../lib/useNetworkCheck'
-import type { CheckStatus } from '../lib/useNetworkCheck'
+import { useNetworkCheck, type CheckStatus } from '../lib/useNetworkCheck'
 import { validateReferencePhoto, ensureFaceApiModelsLoaded } from '../lib/photoValidation'
 import { SETUP_STORAGE_KEY, type CandidateFormData } from './SetupPage'
+import { ThemeToggle } from '../components/ThemeToggle'
+import { useSystemCheckStyles } from './SystemCheckPage.styles'
 
 export const PHOTO_STORAGE_KEY = 'proctor_photo'
 
-// ── Step definitions ──────────────────────────────────────────────────────────
-
 type Step = 'camera' | 'microphone' | 'photo' | 'network'
 
-const STEPS: { id: Step; label: string }[] = [
-  { id: 'camera',     label: 'Camera'      },
-  { id: 'microphone', label: 'Microphone'  },
-  { id: 'photo',      label: 'Photo'       },
-  { id: 'network',    label: 'Network'     },
+const STEPS: { id: Step; label: string; icon: React.ReactNode }[] = [
+  { id: 'camera', label: 'Camera', icon: <Camera20Regular /> },
+  { id: 'microphone', label: 'Microphone', icon: <Mic20Regular /> },
+  { id: 'photo', label: 'Photo', icon: <Person20Regular /> },
+  { id: 'network', label: 'Network', icon: <Wifi2Regular /> },
 ]
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
 function VolumeBar({ level }: { level: number }) {
-  const bars   = 24
+  const styles = useSystemCheckStyles()
+  const bars = 24
   const filled = Math.round((level / 100) * bars)
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '48px' }}
-      aria-label={`Volume level: ${level}%`}>
+    <div className={styles.volumeBarContainer} aria-label={`Volume level: ${level}%`}>
       {Array.from({ length: bars }, (_, i) => {
-        const active   = i < filled
-        const hue      = active ? Math.max(0, 120 - i * 5) : 0
+        const active = i < filled
+        const hue = active ? Math.max(0, 120 - i * 5) : 0
         const heightPct = 20 + (i / bars) * 80
         return (
           <div
             key={i}
+            className={styles.volumeBarItem}
             style={{
-              flex:       1,
-              height:     `${heightPct}%`,
-              borderRadius: '3px',
-              background: active
-                ? `hsl(${hue} 75% 52%)`
-                : 'var(--color-surface-700)',
-              transition: 'background 60ms ease',
+              height: `${heightPct}%`,
+              background: active ? `hsl(${hue} 75% 42%)` : tokens.colorNeutralBackground3,
             }}
           />
         )
@@ -89,79 +79,64 @@ function VolumeBar({ level }: { level: number }) {
 }
 
 function StatusIcon({ state }: { state: string }) {
+  const styles = useSystemCheckStyles()
   if (state === 'pending' || state === 'running')
-    return <Loader2    style={{ width: '18px', height: '18px', color: 'var(--color-brand-400)' }} className="animate-spin" />
+    return <Spinner size="extra-tiny" />
   if (state === 'granted' || state === 'success')
-    return <CheckCircle2 style={{ width: '18px', height: '18px', color: 'var(--color-success)' }} />
+    return <CheckmarkCircle20Filled className={styles.statusSuccess} />
   if (state === 'denied' || state === 'error')
-    return <XCircle    style={{ width: '18px', height: '18px', color: 'var(--color-danger)' }} />
+    return <DismissCircle20Filled className={styles.statusError} />
   return null
 }
 
-/** Small icon+label pill for each backend handshake phase */
 function HandshakeRow({
   label,
   status,
   detail,
 }: {
-  label:  string
+  label: string
   status: CheckStatus
   detail?: string
 }) {
-  const color =
-    status === 'success' ? 'var(--color-success)'
-    : status === 'error' ? 'var(--color-danger)'
-    : status === 'running' ? 'var(--color-brand-400)'
-    : 'var(--color-surface-400)'
+  const styles = useSystemCheckStyles()
+  const rowClass =
+    status === 'success'
+      ? `${styles.handshakeRow} ${styles.handshakeRowSuccess}`
+      : status === 'error'
+      ? `${styles.handshakeRow} ${styles.handshakeRowError}`
+      : `${styles.handshakeRow} ${styles.handshakeRowNeutral}`
 
   return (
-    <div style={{
-      display:    'flex', alignItems: 'center', gap: '12px',
-      padding:    '12px 16px',
-      borderRadius: '10px',
-      background: 'var(--color-surface-800)',
-      border:     `1px solid ${status === 'success' ? 'hsl(145 65% 42% / 0.25)' : status === 'error' ? 'hsl(0 70% 55% / 0.25)' : 'var(--color-surface-700)'}`,
-      transition: 'border-color 300ms ease',
-    }}>
+    <div className={rowClass}>
       <StatusIcon state={status} />
-      <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color }}>{label}</p>
-        {detail && (
-          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-surface-400)', marginTop: '2px' }}>{detail}</p>
-        )}
+      <div className={styles.handshakeContentBox}>
+        <Text className={styles.handshakeText}>{label}</Text>
+        {detail && <Text className={styles.handshakeDetail}>{detail}</Text>}
       </div>
     </div>
   )
 }
 
-// ── Card icon header ──────────────────────────────────────────────────────────
-
-function CardHeader({
-  icon: Icon,
+function CardHeaderSection({
+  icon,
   title,
   subtitle,
   statusState,
   badge,
 }: {
-  icon: React.ElementType
+  icon: React.ReactNode
   title: string
   subtitle: string
   statusState?: string
   badge?: React.ReactNode
 }) {
+  const styles = useSystemCheckStyles()
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-      <div style={{
-        width: '38px', height: '38px', borderRadius: '10px',
-        background: 'hsl(230 65% 52% / 0.12)',
-        border: '1px solid hsl(230 65% 52% / 0.25)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      }}>
-        <Icon style={{ width: '18px', height: '18px', color: 'var(--color-brand-400)' }} />
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <h2 style={{ fontSize: '1.0625rem', fontWeight: 700, margin: 0 }}>{title}</h2>
-        <p style={{ fontSize: '0.8125rem', color: 'var(--color-surface-400)', margin: 0 }}>{subtitle}</p>
+    <div className={styles.sectionHeader}>
+      <div className={styles.sectionIconBox}>{icon}</div>
+      <div className={styles.sectionTitleBox}>
+        <Title3 className={styles.sectionTitle}>{title}</Title3>
+        <Text className={styles.sectionSubtitle}>{subtitle}</Text>
       </div>
       {statusState && <StatusIcon state={statusState} />}
       {badge}
@@ -169,67 +144,55 @@ function CardHeader({
   )
 }
 
-// ── Step progress header ──────────────────────────────────────────────────────
-
 function StepProgress({ current }: { current: Step }) {
-  const idx = STEPS.findIndex(s => s.id === current)
+  const styles = useSystemCheckStyles()
+  const idx = STEPS.findIndex((s) => s.id === current)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', marginBottom: '40px' }}>
-      {/* Pill track */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <div className={styles.stepProgressContainer}>
+      <div className={styles.stepDotsRow}>
         {STEPS.map((s, i) => {
-          const isDone   = i < idx
+          const isDone = i < idx
           const isActive = i === idx
           return (
-            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{
-                width:        isActive ? '32px' : '10px',
-                height:       '10px',
-                borderRadius: '9999px',
-                background:   isDone
-                  ? 'var(--color-success)'
-                  : isActive
-                  ? 'var(--color-brand-500)'
-                  : 'var(--color-surface-700)',
-                transition:   'all 350ms cubic-bezier(0.4,0,0.2,1)',
-                boxShadow:    isActive ? 'var(--glow-brand)' : 'none',
-              }} />
+            <div key={s.id} className={styles.stepItemWrapper}>
+              <div
+                className={
+                  isDone
+                    ? styles.stepDotDone
+                    : isActive
+                    ? styles.stepDotActive
+                    : styles.stepDotIdle
+                }
+              />
               {i < STEPS.length - 1 && (
-                <div style={{
-                  width: '36px', height: '2px', borderRadius: '9999px',
-                  background: isDone ? 'var(--color-success)' : 'var(--color-surface-700)',
-                  transition: 'background 350ms ease',
-                }} />
+                <div
+                  className={isDone ? styles.stepLineDone : styles.stepLineIdle}
+                />
               )}
             </div>
           )
         })}
       </div>
 
-      {/* Labels */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+      <div className={styles.stepLabelsRow}>
         {STEPS.map((s, i) => {
-          const isDone   = i < idx
+          const isDone = i < idx
           const isActive = i === idx
-          // Width calculation: 32px active pill + 36px connector + 8px gap per step
-          const stepWidth = i < STEPS.length - 1 ? '76px' : '42px'
+          const stepWidth = i < STEPS.length - 1 ? '78px' : '48px'
           return (
-            <div key={s.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: stepWidth }}>
-              <span style={{
-                fontSize: '0.6875rem', fontWeight: 600,
-                letterSpacing: '0.06em', textTransform: 'uppercase',
-                color: isActive
-                  ? 'var(--color-surface-50)'
-                  : isDone
-                  ? 'var(--color-success)'
-                  : 'var(--color-surface-600)',
-                whiteSpace: 'nowrap',
-              }}>
+            <div key={s.id} className={styles.stepLabelBox} style={{ width: stepWidth }}>
+              <Text
+                className={
+                  isActive
+                    ? styles.stepLabelActive
+                    : isDone
+                    ? styles.stepLabelDone
+                    : styles.stepLabelIdle
+                }
+              >
                 {s.label}
-              </span>
-              {isDone && (
-                <CheckCircle2 style={{ width: '12px', height: '12px', marginTop: '3px', color: 'var(--color-success)' }} />
-              )}
+              </Text>
+              {isDone && <CheckmarkCircle20Filled className={styles.stepCheckIcon} />}
             </div>
           )
         })}
@@ -238,49 +201,46 @@ function StepProgress({ current }: { current: Step }) {
   )
 }
 
-// ── Latency quality helpers ───────────────────────────────────────────────────
-
 const QUALITY_CONFIG = {
-  excellent: { color: 'var(--color-success)',  label: 'Excellent', bg: 'hsl(145 65% 14%)' },
-  good:      { color: 'hsl(145 65% 52%)',      label: 'Good',      bg: 'hsl(145 65% 10%)' },
-  fair:      { color: 'var(--color-warning)',  label: 'Fair',      bg: 'hsl(38 90% 12%)'  },
-  poor:      { color: 'var(--color-danger)',   label: 'Poor',      bg: 'hsl(0 70% 12%)'   },
+  excellent: { color: tokens.colorPaletteGreenForeground1, label: 'Excellent', bg: tokens.colorPaletteGreenBackground1 },
+  good: { color: tokens.colorPaletteGreenForeground2, label: 'Good', bg: tokens.colorPaletteGreenBackground1 },
+  fair: { color: tokens.colorPaletteYellowForeground1, label: 'Fair', bg: tokens.colorPaletteYellowBackground1 },
+  poor: { color: tokens.colorPaletteRedForeground1, label: 'Poor', bg: tokens.colorPaletteRedBackground1 },
 } as const
 
-// ── Main component ────────────────────────────────────────────────────────────
-
 export default function SystemCheckPage() {
+  const styles = useSystemCheckStyles()
   const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement>(null)
 
   const {
-    cameraState, micState, volumeLevel, cameraStream,
-    requestCamera, requestMic, capturePhoto, stopAll,
+    cameraState,
+    micState,
+    volumeLevel,
+    cameraStream,
+    requestCamera,
+    requestMic,
+    capturePhoto,
+    stopAll,
   } = useMediaCheck()
 
   const networkCheck = useNetworkCheck() as ReturnType<typeof useNetworkCheck> & { _pingSamples: number[] }
 
-  const [currentStep,       setCurrentStep]       = useState<Step>('camera')
-  const [photoPreview,      setPhotoPreview]      = useState<string | null>(null)
-  const [photoError,        setPhotoError]        = useState<string | null>(null)
+  const [currentStep, setCurrentStep] = useState<Step>('camera')
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [photoError, setPhotoError] = useState<string | null>(null)
   const [isValidatingPhoto, setIsValidatingPhoto] = useState(false)
-
-  // ── Guard: redirect if setup data missing ─────────────────────────────────
 
   useEffect(() => {
     const saved = sessionStorage.getItem(SETUP_STORAGE_KEY)
     if (!saved) navigate('/', { replace: true })
   }, [navigate])
 
-  // ── Preload face-api models when entering Step 3 ──────────────────────────
-
   useEffect(() => {
     if (currentStep === 'photo') {
-      ensureFaceApiModelsLoaded().catch(err => console.error('Failed to preload face-api models:', err))
+      ensureFaceApiModelsLoaded().catch((err) => console.error('Failed to preload face-api models:', err))
     }
   }, [currentStep])
-
-  // ── Attach camera stream to whichever <video> is currently mounted ────────
 
   useEffect(() => {
     const video = videoRef.current
@@ -289,8 +249,6 @@ export default function SystemCheckPage() {
       video.srcObject = cameraStream
     }
   }, [cameraStream, currentStep, photoPreview])
-
-  // ── Step navigation ───────────────────────────────────────────────────────
 
   const handleCameraNext = () => {
     if (cameraState === 'granted') {
@@ -314,7 +272,10 @@ export default function SystemCheckPage() {
     try {
       const validation = await validateReferencePhoto(video)
       if (!validation.valid) {
-        setPhotoError(validation.reason || 'Reference photo rejected. Please align your face inside the oval guide and ensure clear lighting.')
+        setPhotoError(
+          validation.reason ||
+            'Reference photo rejected. Please align your face inside the oval guide and ensure clear lighting.'
+        )
         return
       }
       const dataUrl = capturePhoto(video)
@@ -340,335 +301,294 @@ export default function SystemCheckPage() {
     setCurrentStep('network')
   }, [])
 
-  // ── Network check: kick off all phases ────────────────────────────────────
-
   const startNetworkCheck = useCallback(async () => {
     const rawSetup = sessionStorage.getItem(SETUP_STORAGE_KEY)
-    const photo    = sessionStorage.getItem(PHOTO_STORAGE_KEY)
+    const photo = sessionStorage.getItem(PHOTO_STORAGE_KEY)
     if (!rawSetup || !photo) return
 
     const candidate = JSON.parse(rawSetup) as CandidateFormData
     await networkCheck.runAll(candidate, photo)
   }, [networkCheck])
 
-  // Auto-start once Step 4 mounts
   useEffect(() => {
     if (currentStep === 'network' && networkCheck.latencyStatus === 'idle') {
       startNetworkCheck()
     }
   }, [currentStep, networkCheck.latencyStatus, startNetworkCheck])
 
-  // Navigate to exam once all done
   const handleStartExam = useCallback(() => {
     if (!networkCheck.sessionId) return
     stopAll()
     navigate(`/exam/${networkCheck.sessionId}`)
   }, [navigate, networkCheck.sessionId, stopAll])
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   return (
-    <div
-      className="min-h-dvh gradient-bg animate-fade-in"
-      style={{
-        display:        'flex',
-        flexDirection:  'column',
-        alignItems:     'center',
-        justifyContent: 'center',
-        padding:        '40px 24px',
-      }}
-    >
-      {/* ── Page header ── */}
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <div style={{
-          width: '64px', height: '64px', borderRadius: '18px',
-          background: 'hsl(145 65% 14%)',
-          border:     '1px solid hsl(145 65% 42% / 0.35)',
-          display:    'flex', alignItems: 'center', justifyContent: 'center',
-          margin:     '0 auto 16px',
-        }}>
-          <ShieldCheck style={{ width: '28px', height: '28px', color: 'var(--color-success)' }} strokeWidth={1.5} />
-        </div>
-        <h1 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '8px' }}>System Check</h1>
-        <p style={{ fontSize: '0.875rem', color: 'var(--color-surface-400)', maxWidth: '360px', margin: '0 auto' }}>
-          Verify your hardware and connection before starting the exam.
-        </p>
+    <div className={`${styles.pageContainer} animate-fade-in`}>
+      <div className={styles.topToggle}>
+        <ThemeToggle />
       </div>
 
-      {/* ── Step progress ── */}
+      <div className={styles.headerWrapper}>
+        <div className={styles.headerIconBox}>
+          <ShieldCheckmark24Filled />
+        </div>
+        <Title1 className={styles.headerTitle}>System Check</Title1>
+        <Text className={styles.headerSubtitle}>
+          Verify your hardware and connection before starting the exam.
+        </Text>
+      </div>
+
       <StepProgress current={currentStep} />
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          STEP 1: Camera
-          ══════════════════════════════════════════════════════════════════════ */}
+      {/* STEP 1: Camera */}
       {currentStep === 'camera' && (
-        <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '32px' }}>
-          <CardHeader
-            icon={Camera}
+        <Card className={`${styles.card} animate-fade-in shadow-lg`}>
+          <CardHeaderSection
+            icon={<Camera20Regular />}
             title="Camera Check"
             subtitle="Allow camera access to continue"
             statusState={cameraState}
           />
 
-          {/* Preview box */}
-          <div style={{
-            position: 'relative', aspectRatio: '16/9',
-            borderRadius: '14px', overflow: 'hidden',
-            background: 'var(--color-surface-900)',
-            border:     '1px solid var(--color-surface-700)',
-            marginBottom: '24px',
-          }}>
+          <div className={styles.cameraPreviewBox}>
             <video
               ref={videoRef}
               id="camera-preview"
-              autoPlay playsInline muted
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: cameraState === 'granted' ? 'block' : 'none' }}
+              autoPlay
+              playsInline
+              muted
+              className={styles.videoFull}
+              style={{ display: cameraState === 'granted' ? 'block' : 'none' }}
             />
 
             {cameraState !== 'granted' && (
-              <div style={{
-                position: 'absolute', inset: 0,
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '20px',
-              }}>
-                <Camera style={{ width: '48px', height: '48px', color: 'var(--color-surface-600)' }} strokeWidth={1} />
+              <div className={styles.cameraOverlay}>
+                <Camera20Regular className={styles.cameraIconLarge} />
                 {cameraState === 'idle' && (
-                  <p style={{ fontSize: '0.875rem', color: 'var(--color-surface-400)', textAlign: 'center' }}>
+                  <Text className={styles.overlayTextNeutral}>
                     Click below to enable your camera
-                  </p>
+                  </Text>
                 )}
                 {cameraState === 'pending' && (
-                  <p style={{ fontSize: '0.875rem', color: 'var(--color-surface-400)', textAlign: 'center' }}>
+                  <Text className={styles.overlayTextNeutral}>
                     Waiting for camera permission…
-                  </p>
+                  </Text>
                 )}
                 {(cameraState === 'denied' || cameraState === 'error') && (
-                  <p style={{ fontSize: '0.875rem', color: 'var(--color-danger)', textAlign: 'center' }}>
+                  <Text className={styles.overlayTextError}>
                     Camera access was blocked. Please allow it in your browser settings.
-                  </p>
+                  </Text>
                 )}
               </div>
             )}
 
             {cameraState === 'granted' && (
-              <div style={{
-                position: 'absolute', top: '12px', left: '12px',
-                display: 'flex', alignItems: 'center', gap: '7px',
-                background: 'hsl(0 0% 0% / 0.65)',
-                backdropFilter: 'blur(6px)',
-                borderRadius: '9999px', padding: '5px 10px',
-              }}>
+              <div className={styles.liveBadge}>
                 <span className="pulse-dot" />
-                <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'white', letterSpacing: '0.08em' }}>LIVE</span>
+                <span className={styles.liveBadgeText}>LIVE</span>
               </div>
             )}
           </div>
 
           {(cameraState === 'idle' || cameraState === 'denied' || cameraState === 'error') && (
-            <button id="btn-enable-camera" className="btn-primary" style={{ width: '100%' }} onClick={requestCamera}>
-              <Camera style={{ width: '16px', height: '16px' }} />
+            <Button
+              id="btn-enable-camera"
+              appearance="primary"
+              size="large"
+              className={styles.fullWidthBtn}
+              onClick={requestCamera}
+              icon={<Camera20Regular />}
+            >
               {cameraState === 'idle' ? 'Enable Camera' : 'Retry Camera Access'}
-            </button>
+            </Button>
           )}
           {cameraState === 'pending' && (
-            <button id="btn-camera-waiting" className="btn-primary" style={{ width: '100%' }} disabled>
-              <Loader2 style={{ width: '16px', height: '16px' }} className="animate-spin" />
+            <Button id="btn-camera-waiting" appearance="primary" size="large" className={styles.fullWidthBtn} disabled icon={<Spinner size="extra-tiny" />}>
               Waiting for permission…
-            </button>
+            </Button>
           )}
           {cameraState === 'granted' && (
-            <button id="btn-camera-next" className="btn-primary" style={{ width: '100%' }} onClick={handleCameraNext}>
+            <Button
+              id="btn-camera-next"
+              appearance="primary"
+              size="large"
+              className={styles.fullWidthBtn}
+              onClick={handleCameraNext}
+              icon={<ArrowRight20Filled />}
+              iconPosition="after"
+            >
               Camera Ready — Continue
-              <ChevronRight style={{ width: '16px', height: '16px' }} />
-            </button>
+            </Button>
           )}
-        </div>
+        </Card>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          STEP 2: Microphone
-          ══════════════════════════════════════════════════════════════════════ */}
+      {/* STEP 2: Microphone */}
       {currentStep === 'microphone' && (
-        <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '32px' }}>
-          <CardHeader
-            icon={Mic}
+        <Card className={`${styles.card} animate-fade-in shadow-lg`}>
+          <CardHeaderSection
+            icon={<Mic20Regular />}
             title="Microphone Check"
             subtitle="Speak to verify your microphone is working"
             statusState={micState}
           />
 
-          <div style={{
-            borderRadius: '14px', background: 'var(--color-surface-900)',
-            border: '1px solid var(--color-surface-700)',
-            padding: '28px 24px', marginBottom: '24px',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
-            minHeight: '148px', justifyContent: 'center',
-          }}>
+          <div className={styles.micBox}>
             {micState === 'granted' ? (
               <>
-                <div style={{ width: '100%' }}><VolumeBar level={volumeLevel} /></div>
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-surface-400)', margin: 0 }}>
+                <div className={styles.wFull}>
+                  <VolumeBar level={volumeLevel} />
+                </div>
+                <Text className={styles.overlayTextNeutral}>
                   {volumeLevel < 5
                     ? 'Speak into your microphone to test…'
                     : volumeLevel < 35
                     ? '🎤 Detecting voice…'
                     : '✅ Microphone is working!'}
-                </p>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  background: 'var(--color-surface-800)',
-                  border: '1px solid var(--color-surface-700)',
-                  borderRadius: '9999px', padding: '6px 14px',
-                }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-surface-400)' }}>Volume</span>
-                  <span style={{
-                    fontFamily: 'var(--font-mono)', fontSize: '0.9375rem', fontWeight: 700,
-                    color: volumeLevel > 35 ? 'var(--color-success)' : volumeLevel > 10 ? 'var(--color-warning)' : 'var(--color-surface-400)',
-                    minWidth: '3.5ch', textAlign: 'right', transition: 'color 200ms ease',
-                  }}>
+                </Text>
+                <div className={styles.volumeBadge}>
+                  <span className={styles.volumeBadgeLabel}>Volume</span>
+                  <span
+                    className={styles.volumeBadgeValue}
+                    style={{
+                      color:
+                        volumeLevel > 35
+                          ? tokens.colorPaletteGreenForeground1
+                          : volumeLevel > 10
+                          ? tokens.colorPaletteYellowForeground1
+                          : tokens.colorNeutralForeground3,
+                    }}
+                  >
                     {volumeLevel}%
                   </span>
                 </div>
               </>
             ) : micState === 'idle' ? (
               <>
-                <Mic style={{ width: '40px', height: '40px', color: 'var(--color-surface-600)' }} strokeWidth={1} />
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-surface-400)' }}>Click the button below to test your microphone</p>
+                <Mic20Regular className={styles.micIconLarge} />
+                <Text className={styles.overlayTextNeutral}>
+                  Click the button below to test your microphone
+                </Text>
               </>
             ) : micState === 'pending' ? (
               <>
-                <Loader2 style={{ width: '40px', height: '40px', color: 'var(--color-brand-400)' }} strokeWidth={1} className="animate-spin" />
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-surface-400)' }}>Waiting for microphone permission…</p>
+                <Spinner size="medium" />
+                <Text className={styles.overlayTextNeutral}>
+                  Waiting for microphone permission…
+                </Text>
               </>
             ) : (
               <>
-                <XCircle style={{ width: '40px', height: '40px', color: 'var(--color-danger)' }} strokeWidth={1} />
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-danger)', textAlign: 'center' }}>
+                <DismissCircle20Filled className={styles.micIconError} />
+                <Text className={styles.overlayTextError}>
                   Microphone access was blocked. Please allow access in your browser settings.
-                </p>
+                </Text>
               </>
             )}
           </div>
 
           {(micState === 'idle' || micState === 'denied' || micState === 'error') && (
-            <button id="btn-enable-mic" className="btn-primary" style={{ width: '100%' }} onClick={requestMic}>
-              <Mic style={{ width: '16px', height: '16px' }} />
+            <Button
+              id="btn-enable-mic"
+              appearance="primary"
+              size="large"
+              className={styles.fullWidthBtn}
+              onClick={requestMic}
+              icon={<Mic20Regular />}
+            >
               {micState === 'idle' ? 'Enable Microphone' : 'Retry Microphone Access'}
-            </button>
+            </Button>
           )}
           {micState === 'pending' && (
-            <button id="btn-mic-waiting" className="btn-primary" style={{ width: '100%' }} disabled>
-              <Loader2 style={{ width: '16px', height: '16px' }} className="animate-spin" />
+            <Button id="btn-mic-waiting" appearance="primary" size="large" className={styles.fullWidthBtn} disabled icon={<Spinner size="extra-tiny" />}>
               Waiting for permission…
-            </button>
+            </Button>
           )}
           {micState === 'granted' && (
-            <button id="btn-mic-next" className="btn-primary" style={{ width: '100%' }}
-              onClick={handleMicNext} disabled={volumeLevel === 0}>
+            <Button
+              id="btn-mic-next"
+              appearance="primary"
+              size="large"
+              className={styles.fullWidthBtn}
+              onClick={handleMicNext}
+              disabled={volumeLevel === 0}
+              icon={volumeLevel > 0 ? <ArrowRight20Filled /> : undefined}
+              iconPosition="after"
+            >
               {volumeLevel === 0 ? 'Say something to verify…' : 'Microphone Ready — Continue'}
-              {volumeLevel > 0 && <ChevronRight style={{ width: '16px', height: '16px' }} />}
-            </button>
+            </Button>
           )}
-        </div>
+        </Card>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          STEP 3: Photo Capture
-          ══════════════════════════════════════════════════════════════════════ */}
+      {/* STEP 3: Photo Capture */}
       {currentStep === 'photo' && (
-        <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '32px' }}>
-          <CardHeader
-            icon={User}
+        <Card className={`${styles.card} animate-fade-in shadow-lg`}>
+          <CardHeaderSection
+            icon={<Person20Regular />}
             title="Reference Photo"
             subtitle="Used for identity verification during the exam"
-            badge={photoPreview ? <span className="badge badge-success">Captured ✓</span> : undefined}
+            badge={
+              photoPreview ? (
+                <Badge appearance="filled" color="success">
+                  Captured ✓
+                </Badge>
+              ) : undefined
+            }
           />
 
-          {/* Preview box */}
-          <div style={{
-            position: 'relative', aspectRatio: '4/3',
-            borderRadius: '14px', overflow: 'hidden',
-            background: 'var(--color-surface-900)',
-            border: photoPreview
-              ? '2px solid hsl(145 65% 42% / 0.6)'
-              : '1px solid var(--color-surface-700)',
-            marginBottom: '16px',
-            transition: 'border-color 300ms ease',
-          }}>
+          <div
+            className={`${styles.photoPreviewBox} ${
+              photoPreview ? styles.photoPreviewBoxCaptured : styles.photoPreviewBoxIdle
+            }`}
+          >
             {photoPreview ? (
               <img
                 id="photo-preview"
                 src={photoPreview}
                 alt="Reference portrait"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                className={styles.videoFull}
               />
             ) : (
               <video
                 ref={videoRef}
                 id="photo-camera-preview"
-                autoPlay playsInline muted
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                autoPlay
+                playsInline
+                muted
+                className={styles.videoFull}
               />
             )}
 
-            {/* Face oval guide */}
             {!photoPreview && (
-              <div style={{
-                position: 'absolute', inset: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                pointerEvents: 'none',
-              }}>
-                <div style={{
-                  width: '38%', height: '70%', borderRadius: '50%',
-                  border: '2px dashed hsl(230 65% 60% / 0.85)',
-                  boxShadow: '0 0 0 9999px hsl(0 0% 0% / 0.3)',
-                }} />
+              <div className={styles.photoGuideOverlay}>
+                <div className={styles.photoOvalGuide} />
               </div>
             )}
 
-            {/* Captured chip — bottom-right, does NOT cover photo */}
             {photoPreview && (
-              <div style={{
-                position: 'absolute', bottom: '12px', right: '12px',
-                display: 'flex', alignItems: 'center', gap: '6px',
-                background: 'hsl(145 65% 10% / 0.90)',
-                border: '1px solid hsl(145 65% 42% / 0.5)',
-                borderRadius: '9999px', padding: '5px 12px',
-                backdropFilter: 'blur(6px)',
-              }}>
-                <CheckCircle2 style={{ width: '14px', height: '14px', color: 'var(--color-success)' }} />
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-success)' }}>Captured</span>
+              <div className={styles.photoCapturedBadge}>
+                <CheckmarkCircle20Filled className={styles.statusSuccess} />
+                <span className={styles.photoCapturedBadgeText}>Captured</span>
               </div>
             )}
           </div>
 
           {photoError && (
-            <div style={{
-              display: 'flex', alignItems: 'flex-start', gap: '10px',
-              background: 'hsl(0 70% 12%)', border: '1px solid hsl(0 70% 35% / 0.5)',
-              borderRadius: '10px', padding: '12px 14px', marginBottom: '16px',
-            }}>
-              <AlertCircle style={{ width: '16px', height: '16px', color: 'var(--color-danger)', flexShrink: 0, marginTop: '1px' }} />
+            <div className={styles.photoErrorBox}>
+              <DismissCircle20Filled className={styles.statusError} />
               <div>
-                <p style={{ margin: 0, fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-danger)' }}>
-                  Photo Rejected
-                </p>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'hsl(0 70% 65%)' }}>
-                  {photoError}
-                </p>
+                <Text className={styles.photoErrorTitle}>Photo Rejected</Text>
+                <Text className={styles.photoErrorText}>{photoError}</Text>
               </div>
             </div>
           )}
 
           {!photoPreview && (
-            <ul style={{ marginBottom: '20px', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {[
-                'Centre your face inside the oval guide',
-                'Ensure the room is well-lit',
-                'Remove hats or other face coverings',
-              ].map(tip => (
-                <li key={tip} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '0.8125rem', color: 'var(--color-surface-400)' }}>
-                  <span style={{ color: 'var(--color-brand-400)', flexShrink: 0, lineHeight: 1.6 }}>›</span>
+            <ul className={styles.tipsList}>
+              {['Centre your face inside the oval guide', 'Ensure the room is well-lit', 'Remove hats or other face coverings'].map((tip) => (
+                <li key={tip} className={styles.tipsListItem}>
+                  <span className={styles.tipsListBullet}>›</span>
                   {tip}
                 </li>
               ))}
@@ -676,113 +596,93 @@ export default function SystemCheckPage() {
           )}
 
           {!photoPreview ? (
-            <button
+            <Button
               id="btn-capture-photo"
-              className="btn-primary"
-              style={{ width: '100%' }}
+              appearance="primary"
+              size="large"
+              className={styles.fullWidthBtn}
               onClick={handleCapture}
               disabled={isValidatingPhoto}
+              icon={isValidatingPhoto ? <Spinner size="extra-tiny" /> : <Person20Regular />}
             >
-              {isValidatingPhoto ? (
-                <>
-                  <Loader2 style={{ width: '16px', height: '16px' }} className="animate-spin" />
-                  Checking Photo & Alignment…
-                </>
-              ) : (
-                <>
-                  <Camera style={{ width: '16px', height: '16px' }} />
-                  Capture Reference Photo
-                </>
-              )}
-            </button>
+              {isValidatingPhoto ? 'Checking Photo & Alignment…' : 'Capture Reference Photo'}
+            </Button>
           ) : (
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button id="btn-retake-photo" className="btn-secondary" style={{ flex: 1 }} onClick={handleRetakePhoto}>
-                <RefreshCw style={{ width: '16px', height: '16px' }} />
+            <div className={styles.photoActionRow}>
+              <Button id="btn-retake-photo" appearance="secondary" size="large" className={styles.flexBtn} onClick={handleRetakePhoto} icon={<ArrowCounterclockwise20Regular />}>
                 Retake
-              </button>
-              <button id="btn-photo-next" className="btn-primary" style={{ flex: 1 }} onClick={handlePhotoNext}>
+              </Button>
+              <Button id="btn-photo-next" appearance="primary" size="large" className={styles.flexBtn} onClick={handlePhotoNext} icon={<ArrowRight20Filled />} iconPosition="after">
                 Use This Photo
-                <ChevronRight style={{ width: '16px', height: '16px' }} />
-              </button>
+              </Button>
             </div>
           )}
-        </div>
+        </Card>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          STEP 4: Network & Backend Handshake
-          ══════════════════════════════════════════════════════════════════════ */}
+      {/* STEP 4: Network & Backend Handshake */}
       {currentStep === 'network' && (
-        <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: '32px' }}>
-          <CardHeader
-            icon={Wifi}
+        <Card className={`${styles.card} animate-fade-in shadow-lg`}>
+          <CardHeaderSection
+            icon={<Wifi2Regular />}
             title="Connection & Setup"
             subtitle="Checking your internet and registering your session"
           />
 
-          {/* ── Latency section ── */}
-          <div style={{
-            borderRadius: '14px', background: 'var(--color-surface-900)',
-            border: '1px solid var(--color-surface-700)',
-            padding: '20px 20px 16px',
-            marginBottom: '16px',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-surface-200)' }}>
-                Network Latency
-              </span>
+          <div className={styles.networkBox}>
+            <div className={styles.networkHeaderRow}>
+              <Text className={styles.networkHeaderTitle}>Network Latency</Text>
               {networkCheck.latencyStatus === 'running' && (
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-brand-400)' }}>
+                <Text className={styles.networkRunningText}>
                   Measuring… ({networkCheck._pingSamples.length}/5)
-                </span>
+                </Text>
               )}
-              {networkCheck.latencyStatus === 'success' && networkCheck.latencyResult && (() => {
-                const q = networkCheck.latencyResult.quality
-                const cfg = QUALITY_CONFIG[q]
-                return (
-                  <span style={{
-                    fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    background: cfg.bg, color: cfg.color,
-                    border: `1px solid ${cfg.color}40`,
-                    borderRadius: '9999px', padding: '3px 10px',
-                  }}>
-                    {cfg.label}
-                  </span>
-                )
-              })()}
+              {networkCheck.latencyStatus === 'success' &&
+                networkCheck.latencyResult &&
+                (() => {
+                  const q = networkCheck.latencyResult.quality
+                  const cfg = QUALITY_CONFIG[q]
+                  return (
+                    <span
+                      className={styles.networkQualityBadge}
+                      style={{
+                        background: cfg.bg,
+                        color: cfg.color,
+                      }}
+                    >
+                      {cfg.label}
+                    </span>
+                  )
+                })()}
             </div>
 
-            {/* Live ping bar chart */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '48px', marginBottom: '12px' }}>
+            <div className={styles.pingBarsContainer}>
               {Array.from({ length: 5 }, (_, i) => {
                 const sample = networkCheck._pingSamples[i]
                 const hasSample = sample !== undefined
-                const heightPct = hasSample
-                  ? Math.min(100, Math.max(8, 100 - (Math.min(sample, 500) / 500) * 92))
-                  : 0
+                const heightPct = hasSample ? Math.min(100, Math.max(8, 100 - (Math.min(sample, 500) / 500) * 92)) : 0
                 const isGood = hasSample && sample < 200
                 return (
-                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                    <div style={{
-                      width: '100%', height: '36px',
-                      display: 'flex', alignItems: 'flex-end',
-                    }}>
-                      <div style={{
-                        width: '100%', borderRadius: '4px',
-                        height: hasSample ? `${heightPct}%` : '8px',
-                        background: hasSample
-                          ? (isGood ? 'var(--color-success)' : 'var(--color-warning)')
-                          : 'var(--color-surface-700)',
-                        transition: 'height 300ms ease, background 300ms ease',
-                        minHeight: '4px',
-                      }} />
+                  <div key={i} className={styles.pingBarCol}>
+                    <div className={styles.pingBarWrapper}>
+                      <div
+                        className={styles.pingBarFill}
+                        style={{
+                          height: hasSample ? `${heightPct}%` : '8px',
+                          background: hasSample
+                            ? isGood
+                              ? tokens.colorPaletteGreenForeground1
+                              : tokens.colorPaletteYellowForeground1
+                            : tokens.colorNeutralBackground3,
+                        }}
+                      />
                     </div>
-                    <span style={{
-                      fontSize: '0.625rem', fontFamily: 'var(--font-mono)',
-                      color: hasSample ? 'var(--color-surface-400)' : 'var(--color-surface-700)',
-                    }}>
+                    <span
+                      className={styles.pingBarValue}
+                      style={{
+                        color: hasSample ? tokens.colorNeutralForeground3 : tokens.colorNeutralForeground4,
+                      }}
+                    >
                       {hasSample ? `${sample}ms` : '—'}
                     </span>
                   </div>
@@ -790,101 +690,102 @@ export default function SystemCheckPage() {
               })}
             </div>
 
-            {/* Average result */}
             {networkCheck.latencyResult && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-surface-700)' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-surface-400)' }}>Average RTT</span>
-                <span style={{
-                  fontFamily: 'var(--font-mono)', fontSize: '1.125rem', fontWeight: 700,
-                  color: QUALITY_CONFIG[networkCheck.latencyResult.quality].color,
-                }}>
+              <div className={styles.avgRttRow}>
+                <Text className={styles.avgRttLabel}>Average RTT</Text>
+                <Text
+                  className={styles.avgRttValue}
+                  style={{
+                    color: QUALITY_CONFIG[networkCheck.latencyResult.quality].color,
+                  }}
+                >
                   {networkCheck.latencyResult.avgMs} ms
-                </span>
+                </Text>
               </div>
             )}
           </div>
 
-          {/* ── Handshake rows ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
+          <div className={styles.handshakeContainer}>
             <HandshakeRow
               label="Register Candidate"
               status={networkCheck.createStatus}
               detail={
-                networkCheck.createStatus === 'running' ? 'Creating exam session…'
-                : networkCheck.createStatus === 'success' ? 'Session registered successfully'
-                : networkCheck.createStatus === 'error' ? 'Failed to register session'
-                : 'Waiting…'
+                networkCheck.createStatus === 'running'
+                  ? 'Creating exam session…'
+                  : networkCheck.createStatus === 'success'
+                  ? 'Session registered successfully'
+                  : networkCheck.createStatus === 'error'
+                  ? 'Failed to register session'
+                  : 'Waiting…'
               }
             />
             <HandshakeRow
               label="Upload Reference Photo"
               status={networkCheck.verifyStatus}
               detail={
-                networkCheck.verifyStatus === 'running' ? 'Uploading your photo…'
-                : networkCheck.verifyStatus === 'success' ? 'Identity verified — session is ACTIVE'
-                : networkCheck.verifyStatus === 'error' ? 'Photo upload failed'
-                : 'Waiting for session registration…'
+                networkCheck.verifyStatus === 'running'
+                  ? 'Uploading your photo…'
+                  : networkCheck.verifyStatus === 'success'
+                  ? 'Identity verified — session is ACTIVE'
+                  : networkCheck.verifyStatus === 'error'
+                  ? 'Photo upload failed'
+                  : 'Waiting for session registration…'
               }
             />
           </div>
 
-          {/* ── Error banner ── */}
           {networkCheck.errorMessage && (
-            <div style={{
-              display: 'flex', alignItems: 'flex-start', gap: '10px',
-              background: 'hsl(0 70% 12%)', border: '1px solid hsl(0 70% 35% / 0.5)',
-              borderRadius: '10px', padding: '12px 14px', marginBottom: '20px',
-            }}>
-              <AlertCircle style={{ width: '16px', height: '16px', color: 'var(--color-danger)', flexShrink: 0, marginTop: '1px' }} />
+            <div className={styles.networkErrorBox}>
+              <DismissCircle20Filled className={styles.statusError} />
               <div>
-                <p style={{ margin: 0, fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-danger)' }}>
-                  Connection Error
-                </p>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'hsl(0 70% 65%)' }}>
-                  {networkCheck.errorMessage}
-                </p>
+                <Text className={styles.photoErrorTitle}>Connection Error</Text>
+                <Text className={styles.photoErrorText}>{networkCheck.errorMessage}</Text>
               </div>
             </div>
           )}
 
-          {/* ── Action buttons ── */}
           {networkCheck.allDone ? (
-            <button id="btn-start-exam" className="btn-primary" style={{ width: '100%' }} onClick={handleStartExam}>
-              <Play style={{ width: '16px', height: '16px' }} />
+            <Button
+              id="btn-start-exam"
+              appearance="primary"
+              size="large"
+              className={styles.fullWidthBtn}
+              onClick={handleStartExam}
+              icon={<Play20Filled />}
+            >
               Start Exam
-            </button>
+            </Button>
           ) : networkCheck.errorMessage ? (
-            <button id="btn-retry-network" className="btn-secondary" style={{ width: '100%' }} onClick={startNetworkCheck}>
-              <RefreshCw style={{ width: '16px', height: '16px' }} />
+            <Button
+              id="btn-retry-network"
+              appearance="secondary"
+              size="large"
+              className={styles.fullWidthBtn}
+              onClick={startNetworkCheck}
+              icon={<ArrowCounterclockwise20Regular />}
+            >
               Retry
-            </button>
+            </Button>
           ) : (
-            <button id="btn-network-running" className="btn-primary" style={{ width: '100%' }} disabled>
-              <Loader2 style={{ width: '16px', height: '16px' }} className="animate-spin" />
+            <Button id="btn-network-running" appearance="primary" size="large" className={styles.fullWidthBtn} disabled icon={<Spinner size="extra-tiny" />}>
               Checking…
-            </button>
+            </Button>
           )}
-        </div>
+        </Card>
       )}
 
-      {/* ── Back link ── */}
-      <button
+      <Button
         id="btn-back-to-setup"
-        type="button"
-        style={{
-          marginTop: '24px', display: 'flex', alignItems: 'center', gap: '6px',
-          fontSize: '0.875rem', color: 'var(--color-surface-400)',
-          background: 'none', border: 'none', cursor: 'pointer',
-          transition: 'color var(--transition-fast)', padding: '4px 8px',
-          borderRadius: 'var(--radius-sm)',
+        appearance="subtle"
+        icon={<ArrowLeft20Regular />}
+        className={styles.backBtn}
+        onClick={() => {
+          stopAll()
+          navigate('/')
         }}
-        onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-surface-200)')}
-        onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-surface-400)')}
-        onClick={() => { stopAll(); navigate('/') }}
       >
-        <ArrowLeft style={{ width: '14px', height: '14px' }} />
         Back to candidate form
-      </button>
+      </Button>
     </div>
   )
 }
