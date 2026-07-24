@@ -102,7 +102,7 @@ export default function AdminPage() {
       case 'ACTIVE':
         return (
           <Badge appearance="tint" color="brand">
-            <span className="pulse-dot mr-1.5 inline-block" /> Active
+            <span className="pulse-dot" /> Active
           </Badge>
         )
       default:
@@ -150,7 +150,7 @@ export default function AdminPage() {
               <Board24Filled className={styles.iconMd} />
             </div>
             <div>
-              <Title1 className={styles.headerTitle}>Admin Portal — Exam Sessions</Title1>
+              <Title1 className={styles.headerTitle}>Admin Portal - Exam Sessions</Title1>
               <Text className={styles.headerSubtitle}>
                 Monitor candidates, proctoring violations, and risk summaries
               </Text>
@@ -233,7 +233,7 @@ export default function AdminPage() {
 
         {/* Table Card */}
         <Card className={`${styles.tableCard} shadow-md overflow-hidden`}>
-          <div className="overflow-x-auto">
+          <div className={styles.tableContainer}>
             <Table aria-label="Admin sessions list" className={commonStyles.wFull}>
               <TableHeader className={styles.tableHeader}>
                 <TableRow>
@@ -246,7 +246,7 @@ export default function AdminPage() {
                   <TableHeaderCell className={styles.tableHeaderCellActions}>Actions</TableHeaderCell>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody id='table-body-unique'>
                 {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={7} className={styles.tableCellEmpty}>
@@ -305,7 +305,7 @@ export default function AdminPage() {
                         })}
                       </TableCell>
 
-                      <TableCell className={styles.actionsCell}>
+                      <TableCell>
                         <Link to={`/admin/sessions/${s.session_id}`} className={commonStyles.linkNoUnderline}>
                           <Button appearance="secondary" size="small" icon={<DocumentText20Regular />} className={styles.actionBtn}>
                             View Report

@@ -8,7 +8,6 @@ import {
   Button,
   Tooltip,
   makeStyles,
-  shorthands,
 } from '@fluentui/react-components'
 import {
   WeatherSunny20Regular,
@@ -20,8 +19,8 @@ import { useTheme, type ThemeMode } from '../context/ThemeContext'
 const useStyles = makeStyles({
   toggleBtn: {
     fontWeight: 600,
-    ...shorthands.border('1px', 'solid', 'var(--border-subtle)'),
-    ...shorthands.borderRadius('8px'),
+    border: '1px solid var(--border-subtle)',
+    borderRadius: '8px',
   },
 })
 
@@ -74,6 +73,6 @@ export const ThemeToggle: React.FC = () => {
           </MenuItemRadio>
         </MenuList>
       </MenuPopover>
-    </Menu>
+    </Menu >
   )
 }

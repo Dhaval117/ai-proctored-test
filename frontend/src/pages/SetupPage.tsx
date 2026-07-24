@@ -129,6 +129,21 @@ export default function SetupPage() {
     }
   }
 
+  const submitButton = (
+    <Button
+      id="setup-submit"
+      type={!isFormValid && !submitting ? 'button' : 'submit'}
+      appearance="primary"
+      size="large"
+      disabled={!isFormValid || submitting}
+      icon={!submitting ? <ArrowRight20Filled /> : undefined}
+      iconPosition="after"
+      className={commonStyles.fullWidthButton}
+    >
+      {submitting ? 'Saving…' : 'Continue to System Check'}
+    </Button>
+  )
+
   return (
     <div className={commonStyles.pageContainer}>
       <div className={commonStyles.topToggle}>
@@ -259,20 +274,13 @@ export default function SetupPage() {
 
           {/* Submit */}
           <div className={styles.submitContainer}>
-            {
-              <Button
-                id="setup-submit"
-                type="submit"
-                appearance="primary"
-                size="large"
-                disabled={!isFormValid || submitting}
-                icon={!submitting ? <ArrowRight20Filled /> : undefined}
-                iconPosition="after"
-                className={commonStyles.fullWidthButton}
-              >
-                {submitting ? 'Saving…' : 'Continue to System Check'}
-              </Button>
-            }
+            {!isFormValid && !submitting ? (
+              <Tooltip content="Please fill in all required fields to continue" relationship="label">
+                <div className={commonStyles.wFull}>{submitButton}</div>
+              </Tooltip>
+            ) : (
+              submitButton
+            )}
           </div>
         </form>
       </Card>

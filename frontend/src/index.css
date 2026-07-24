@@ -123,6 +123,7 @@ pre {
   height: 8px;
   border-radius: 50%;
   background: var(--color-success);
+  margin-right: 4px;
 }
 
 .pulse-dot::after {

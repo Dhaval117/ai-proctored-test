@@ -59,16 +59,7 @@ const customDarkTheme: Theme = {
   colorCompoundBrandForeground1Pressed: '#cccccc',
 }
 
-const useProviderStyles = makeStyles({
-  root: {
-    minHeight: '100dvh',
-    backgroundColor: 'var(--bg-page)',
-    color: 'var(--text-main)',
-  },
-})
-
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const styles = useProviderStyles()
   const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode
     return saved === 'light' || saved === 'dark' || saved === 'system' ? saved : 'system'
@@ -117,7 +108,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   return (
     <ThemeContext.Provider value={{ themeMode, setThemeMode, resolvedTheme, fluentTheme }}>
-      <FluentProvider theme={fluentTheme} className={styles.root}>
+      <FluentProvider theme={fluentTheme}>
         {children}
       </FluentProvider>
     </ThemeContext.Provider>

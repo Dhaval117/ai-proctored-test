@@ -45,10 +45,7 @@ export const useSetupStyles = makeStyles({
   submitContainer: {
     paddingTop: tokens.spacingVerticalS,
   },
-  tooltipTrigger: {
-    display: 'block',
-    width: '100%',
-  },
+
   footerNote: {
     marginTop: tokens.spacingVerticalM,
     color: tokens.colorNeutralForeground4,

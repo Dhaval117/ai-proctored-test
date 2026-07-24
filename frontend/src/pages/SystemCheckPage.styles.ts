@@ -1,4 +1,4 @@
-import { makeStyles, shorthands, tokens } from '@fluentui/react-components'
+import { makeStyles, tokens } from '@fluentui/react-components'
 
 export const useSystemCheckStyles = makeStyles({
   backBtn: {
@@ -14,7 +14,7 @@ export const useSystemCheckStyles = makeStyles({
   },
   volumeBarItem: {
     flex: 1,
-    ...shorthands.borderRadius('3px'),
+    borderRadius: '3px',
     transition: 'background 60ms ease',
   },
   // Status icons
@@ -28,20 +28,20 @@ export const useSystemCheckStyles = makeStyles({
   handshakeRow: {
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('12px'),
+    gap: '12px',
     padding: tokens.spacingHorizontalS,
-    ...shorthands.borderRadius(tokens.borderRadiusMedium),
+    borderRadius: tokens.borderRadiusMedium,
     backgroundColor: tokens.colorNeutralBackground2,
     transition: 'border-color 300ms ease',
   },
   handshakeRowSuccess: {
-    ...shorthands.border('1px', 'solid', tokens.colorPaletteGreenBorder2),
+    border: `1px solid ${tokens.colorPaletteGreenBorder2}`,
   },
   handshakeRowError: {
-    ...shorthands.border('1px', 'solid', tokens.colorPaletteRedBorder2),
+    border: `1px solid ${tokens.colorPaletteRedBorder2}`,
   },
   handshakeRowNeutral: {
-    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
   },
   handshakeContentBox: {
     flex: 1,
@@ -61,13 +61,13 @@ export const useSystemCheckStyles = makeStyles({
   sectionHeader: {
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('12px'),
+    gap: '12px',
     marginBottom: tokens.spacingVerticalXXS,
   },
   sectionIconBox: {
     width: '40px',
     height: '40px',
-    ...shorthands.borderRadius(tokens.borderRadiusMedium),
+    borderRadius: tokens.borderRadiusMedium,
     backgroundColor: tokens.colorBrandBackground2,
     display: 'flex',
     alignItems: 'center',
@@ -85,7 +85,7 @@ export const useSystemCheckStyles = makeStyles({
   },
   sectionSubtitle: {
     color: tokens.colorNeutralForeground3,
-    ...shorthands.margin(0),
+    margin: 0,
   },
   // Step progress
   stepProgressContainer: {
@@ -98,52 +98,52 @@ export const useSystemCheckStyles = makeStyles({
   stepDotsRow: {
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('8px'),
+    gap: '8px',
   },
   stepItemWrapper: {
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('8px'),
+    gap: '8px',
   },
   stepDotActive: {
     width: '36px',
     height: '10px',
-    ...shorthands.borderRadius(tokens.borderRadiusCircular),
+    borderRadius: tokens.borderRadiusCircular,
     backgroundColor: tokens.colorBrandBackground,
     transition: 'all 350ms cubic-bezier(0.4,0,0.2,1)',
   },
   stepDotDone: {
     width: '12px',
     height: '10px',
-    ...shorthands.borderRadius(tokens.borderRadiusCircular),
+    borderRadius: tokens.borderRadiusCircular,
     backgroundColor: tokens.colorPaletteGreenBackground3,
     transition: 'all 350ms cubic-bezier(0.4,0,0.2,1)',
   },
   stepDotIdle: {
     width: '12px',
     height: '10px',
-    ...shorthands.borderRadius(tokens.borderRadiusCircular),
+    borderRadius: tokens.borderRadiusCircular,
     backgroundColor: tokens.colorNeutralBackground3,
     transition: 'all 350ms cubic-bezier(0.4,0,0.2,1)',
   },
   stepLineDone: {
     width: '36px',
     height: '2px',
-    ...shorthands.borderRadius(tokens.borderRadiusCircular),
+    borderRadius: tokens.borderRadiusCircular,
     backgroundColor: tokens.colorPaletteGreenBackground3,
     transition: 'background 350ms ease',
   },
   stepLineIdle: {
     width: '36px',
     height: '2px',
-    ...shorthands.borderRadius(tokens.borderRadiusCircular),
+    borderRadius: tokens.borderRadiusCircular,
     backgroundColor: tokens.colorNeutralStroke2,
     transition: 'background 350ms ease',
   },
   stepLabelsRow: {
     display: 'flex',
     alignItems: 'flex-start',
-    ...shorthands.gap('4px'),
+    gap: '4px',
   },
   stepLabelBox: {
     display: 'flex',
@@ -178,10 +178,10 @@ export const useSystemCheckStyles = makeStyles({
   cameraPreviewBox: {
     position: 'relative',
     aspectRatio: '16/9',
-    ...shorthands.borderRadius(tokens.borderRadiusMedium),
-    ...shorthands.overflow('hidden'),
+    borderRadius: tokens.borderRadiusMedium,
+    overflow: 'hidden',
     backgroundColor: tokens.colorNeutralBackground3,
-    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
     marginBottom: tokens.spacingVerticalS,
     height: '318px'
   },
@@ -200,8 +200,8 @@ export const useSystemCheckStyles = makeStyles({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    ...shorthands.gap('12px'),
-    ...shorthands.padding('20px'),
+    gap: '12px',
+    padding: '20px',
   },
   cameraIconLarge: {
     width: '44px',
@@ -222,11 +222,11 @@ export const useSystemCheckStyles = makeStyles({
     left: '12px',
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('7px'),
+    gap: '7px',
     backgroundColor: 'rgba(0, 0, 0, 0.65)',
     backdropFilter: 'blur(6px)',
-    ...shorthands.borderRadius('9999px'),
-    ...shorthands.padding('5px', '10px'),
+    borderRadius: '9999px',
+    padding: '5px 10px',
   },
   liveBadgeText: {
     fontSize: '11px',
@@ -236,15 +236,15 @@ export const useSystemCheckStyles = makeStyles({
   },
   // Step 2: Mic
   micBox: {
-    ...shorthands.borderRadius(tokens.borderRadiusMedium),
+    borderRadius: tokens.borderRadiusMedium,
     backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
-    ...shorthands.padding('24px'),
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    padding: '24px',
     marginBottom: tokens.spacingVerticalS,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    ...shorthands.gap('16px'),
+    gap: '16px',
     height: '318px',
     justifyContent: 'center',
   },
@@ -261,11 +261,11 @@ export const useSystemCheckStyles = makeStyles({
   volumeBadge: {
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('8px'),
+    gap: '8px',
     backgroundColor: tokens.colorNeutralBackground1,
-    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke1),
-    ...shorthands.borderRadius('9999px'),
-    ...shorthands.padding('6px', '14px'),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderRadius: '9999px',
+    padding: '6px 14px',
   },
   volumeBadgeLabel: {
     fontSize: '12px',
@@ -283,16 +283,16 @@ export const useSystemCheckStyles = makeStyles({
   photoPreviewBox: {
     position: 'relative',
     aspectRatio: '4/3',
-    ...shorthands.borderRadius(tokens.borderRadiusMedium),
-    ...shorthands.overflow('hidden'),
+    borderRadius: tokens.borderRadiusMedium,
+    overflow: 'hidden',
     backgroundColor: tokens.colorNeutralBackground3,
     height: '250px'
   },
   photoPreviewBoxIdle: {
-    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
   },
   photoPreviewBoxCaptured: {
-    ...shorthands.border('2px', 'solid', tokens.colorPaletteGreenBorder1),
+    border: `2px solid ${tokens.colorPaletteGreenBorder1}`,
   },
   photoGuideOverlay: {
     position: 'absolute',
@@ -308,8 +308,8 @@ export const useSystemCheckStyles = makeStyles({
   photoOvalGuide: {
     width: '38%',
     height: '70%',
-    ...shorthands.borderRadius('50%'),
-    ...shorthands.border('2px', 'dashed', tokens.colorBrandForeground1),
+    borderRadius: '50%',
+    border: `2px dashed ${tokens.colorBrandForeground1}`,
     boxShadow: '0 0 0 9999px rgba(0,0,0,0.35)',
   },
   photoCapturedBadge: {
@@ -318,10 +318,10 @@ export const useSystemCheckStyles = makeStyles({
     right: '12px',
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('6px'),
+    gap: '6px',
     backgroundColor: 'rgba(0,0,0,0.75)',
-    ...shorthands.borderRadius('9999px'),
-    ...shorthands.padding('5px', '12px'),
+    borderRadius: '9999px',
+    padding: '5px 12px',
   },
   photoCapturedBadgeText: {
     fontSize: '12px',
@@ -368,7 +368,7 @@ export const useSystemCheckStyles = makeStyles({
   },
   photoActionRow: {
     display: 'flex',
-    ...shorthands.gap('12px'),
+    gap: '12px',
   },
   flexBtn: {
     flex: 1,
@@ -376,9 +376,9 @@ export const useSystemCheckStyles = makeStyles({
   },
   // Step 4: Network
   networkBox: {
-    ...shorthands.borderRadius(tokens.borderRadiusMedium),
+    borderRadius: tokens.borderRadiusMedium,
     backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
     padding: tokens.spacingHorizontalL,
     marginBottom: tokens.spacingVerticalS,
   },
@@ -401,13 +401,13 @@ export const useSystemCheckStyles = makeStyles({
     fontWeight: 700,
     letterSpacing: '0.06em',
     textTransform: 'uppercase',
-    ...shorthands.borderRadius('9999px'),
-    ...shorthands.padding('3px', '10px'),
+    borderRadius: '9999px',
+    padding: '3px 10px',
   },
   pingBarsContainer: {
     display: 'flex',
     alignItems: 'flex-end',
-    ...shorthands.gap('6px'),
+    gap: '6px',
     height: '48px',
     marginBottom: '12px',
   },
@@ -416,7 +416,7 @@ export const useSystemCheckStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    ...shorthands.gap('4px'),
+    gap: '4px',
   },
   pingBarWrapper: {
     width: '100%',
@@ -426,7 +426,7 @@ export const useSystemCheckStyles = makeStyles({
   },
   pingBarFill: {
     width: '100%',
-    ...shorthands.borderRadius('4px'),
+    borderRadius: '4px',
     transition: 'height 300ms ease, background 300ms ease',
     minHeight: '4px',
   },
@@ -438,9 +438,9 @@ export const useSystemCheckStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    ...shorthands.gap('8px'),
+    gap: '8px',
     paddingTop: '8px',
-    ...shorthands.borderTop('1px', 'solid', tokens.colorNeutralStroke2),
+    borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
   },
   avgRttLabel: {
     fontSize: '12px',
@@ -454,17 +454,17 @@ export const useSystemCheckStyles = makeStyles({
   handshakeContainer: {
     display: 'flex',
     flexDirection: 'column',
-    ...shorthands.gap('8px'),
+    gap: '8px',
     marginBottom: tokens.spacingVerticalS,
   },
   networkErrorBox: {
     display: 'flex',
     alignItems: 'flex-start',
-    ...shorthands.gap('10px'),
+    gap: '10px',
     backgroundColor: tokens.colorPaletteRedBackground1,
-    ...shorthands.border('1px', 'solid', tokens.colorPaletteRedBorder1),
-    ...shorthands.borderRadius(tokens.borderRadiusMedium),
-    ...shorthands.padding('12px', '14px'),
+    border: `1px solid ${tokens.colorPaletteRedBorder1}`,
+    borderRadius: tokens.borderRadiusMedium,
+    padding: '12px 14px',
     marginBottom: tokens.spacingVerticalS,
   },
 })

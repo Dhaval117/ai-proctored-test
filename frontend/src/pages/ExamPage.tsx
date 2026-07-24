@@ -17,12 +17,13 @@ import {
   DialogBody,
   DialogContent,
   DialogActions,
+  Title3,
 } from '@fluentui/react-components'
 import {
-  Mic24Filled,
   Warning24Filled,
   LockClosed24Filled,
   Camera20Regular,
+  ClipboardTextEditFilled,
 } from '@fluentui/react-icons'
 
 import { useProctor } from '../hooks/useProctor'
@@ -118,60 +119,55 @@ export default function ExamPage() {
           <ThemeToggle />
         </div>
 
+        <Card className={`${styles.floatingProctoring} shadow-md`}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 500 }}>AI Face Detection:</span>
+              <Badge appearance="tint" color={isModelsLoaded ? 'success' : 'warning'}>
+                {isModelsLoaded ? (hasRefDescriptor ? 'Active (Monitoring)' : 'Active (No Ref Photo)') : 'Loading Models...'}
+              </Badge>
+            </div>
+
+            <Badge appearance="filled" color={violationCount > 0 ? 'warning' : 'subtle'} size="large">
+              Violations: {violationCount} / {maxViolations}
+            </Badge>
+
+            {allowToggle ? (
+              <Button
+                size="small"
+                appearance={isPaused ? 'outline' : 'secondary'}
+                onClick={() => setIsPaused(!isPaused)}
+                title="Click to Pause/Resume Proctoring Checks during development"
+                className={styles.proctoringBtn}
+              >
+                Proctoring: {isPaused ? 'PAUSED' : 'ACTIVE'}
+              </Button>
+            ) : (
+              <Badge
+                appearance="tint"
+                color={proctoringEnabled ? 'success' : 'warning'}
+              >
+                Proctoring: {!proctoringEnabled ? 'DISABLED' : 'ACTIVE'}
+              </Badge>
+            )}
+          </div>
+        </Card>
         <div className={styles.mainWrapper}>
           {/* Header Card */}
           <Card className={`${styles.headerCard} shadow-md`}>
             <div className={styles.headerIconBox}>
-              <Mic24Filled className={styles.iconSm} />
+              <ClipboardTextEditFilled className={styles.iconSm} />
             </div>
-            <Title1 className={styles.headerTitle}>Examination</Title1>
-            <Text className={styles.headerSubtitle}>
-              AI-powered verbal interview in progress
-            </Text>
-
-            <div className={styles.badgesRow}>
-              <Badge appearance="filled" color={violationCount > 0 ? 'warning' : 'subtle'} size="large">
-                Violations: {violationCount} / {maxViolations}
-              </Badge>
-              {allowToggle ? (
-                <Button
-                  size="small"
-                  appearance={isPaused ? 'outline' : 'secondary'}
-                  onClick={() => setIsPaused(!isPaused)}
-                  title="Click to Pause/Resume Proctoring Checks during development"
-                  className={styles.proctoringBtn}
-                >
-                  Proctoring: {isPaused ? 'PAUSED (DEV)' : 'ACTIVE'}
-                </Button>
-              ) : (
-                <Badge
-                  appearance="tint"
-                  color={proctoringEnabled ? 'success' : 'warning'}
-                  size="large"
-                >
-                  Proctoring: {!proctoringEnabled ? 'DISABLED (SERVER)' : 'ACTIVE'}
-                </Badge>
-              )}
+            <div>
+              <Title3 className={styles.headerTitle}>Examination</Title3>
+              <Text className={styles.headerSubtitle}>
+                AI-powered verbal interview in progress
+              </Text>
             </div>
           </Card>
 
           {/* Main Dashboard area */}
           <ExamDashboard sessionId={sessionId!} />
-
-          <div className={styles.testProctoringBox}>
-            <Text className={styles.testProctoringTitle}>Try the following to test proctoring:</Text>
-            <ul className={styles.testProctoringList}>
-              <li>Switch away to another tab</li>
-              <li>Try to Copy or Paste text</li>
-              <li>Right-click or press F12</li>
-            </ul>
-            <div className={styles.testProctoringFooter}>
-              <span>AI Face Detection status:</span>
-              <Badge appearance="tint" color={isModelsLoaded ? 'success' : 'warning'}>
-                {isModelsLoaded ? (hasRefDescriptor ? 'Active (Monitoring)' : 'Active (No Ref Photo)') : 'Loading Models...'}
-              </Badge>
-            </div>
-          </div>
         </div>
       </div>
 

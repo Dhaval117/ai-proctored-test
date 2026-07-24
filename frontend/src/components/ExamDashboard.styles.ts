@@ -1,4 +1,4 @@
-import { makeStyles, shorthands, tokens } from '@fluentui/react-components'
+import { makeStyles, tokens } from '@fluentui/react-components'
 
 export const useExamDashboardStyles = makeStyles({
   completeBox: {
@@ -6,20 +6,20 @@ export const useExamDashboardStyles = makeStyles({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    ...shorthands.padding('32px'),
+    padding: '32px',
     textAlign: 'center',
     marginTop: '24px',
   },
   completeIconBox: {
     width: '64px',
     height: '64px',
-    ...shorthands.borderRadius(tokens.borderRadiusXLarge),
+    borderRadius: tokens.borderRadiusXLarge,
     backgroundColor: tokens.colorPaletteGreenBackground1,
     color: tokens.colorPaletteGreenForeground1,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    ...shorthands.margin('0px', 'auto', '16px', 'auto'),
+    margin: '0px auto 16px auto',
   },
   completeTitle: {
     display: 'block',
@@ -31,26 +31,26 @@ export const useExamDashboardStyles = makeStyles({
   dashboardContainer: {
     width: '100%',
     maxWidth: '672px',
-    ...shorthands.margin('24px', 'auto', '0px', 'auto'),
+    margin: 'auto auto 0px auto',
     display: 'flex',
     flexDirection: 'column',
-    ...shorthands.gap('24px'),
+    gap: '24px',
   },
   speechErrorBox: {
-    ...shorthands.padding('12px', '16px'),
-    ...shorthands.borderRadius(tokens.borderRadiusMedium),
+    padding: '12px 16px',
+    borderRadius: tokens.borderRadiusMedium,
     backgroundColor: tokens.colorPaletteRedBackground1,
-    ...shorthands.border('1px', 'solid', tokens.colorPaletteRedBorder1),
+    border: `1px solid ${tokens.colorPaletteRedBorder1}`,
     color: tokens.colorPaletteRedForeground1,
     fontSize: '13px',
   },
   questionCard: {
-    ...shorthands.padding('24px'),
-    ...shorthands.borderRadius(tokens.borderRadiusLarge),
-    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke1),
+    padding: '24px',
+    borderRadius: tokens.borderRadiusLarge,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
     backgroundColor: tokens.colorNeutralBackground1,
     position: 'relative',
-    ...shorthands.overflow('hidden'),
+    overflow: 'hidden',
   },
   speakingProgressBar: {
     position: 'absolute',
@@ -64,23 +64,23 @@ export const useExamDashboardStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: '16px',
   },
   badgesGroup: {
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('8px'),
+    gap: '8px',
   },
   questionTitle: {
     display: 'block',
     fontWeight: 600,
     lineHeight: 1.5,
+    fontSize: tokens.fontSizeBase500,
     color: tokens.colorNeutralForeground1,
   },
   transcriptionCard: {
-    ...shorthands.padding('24px'),
-    ...shorthands.borderRadius(tokens.borderRadiusLarge),
-    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke1),
+    padding: '24px',
+    borderRadius: tokens.borderRadiusLarge,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
     backgroundColor: tokens.colorNeutralBackground1,
     position: 'relative',
   },
@@ -90,7 +90,7 @@ export const useExamDashboardStyles = makeStyles({
     right: '16px',
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('8px'),
+    gap: '8px',
     fontSize: '12px',
     fontWeight: 600,
     color: tokens.colorPaletteRedForeground1,
@@ -111,12 +111,12 @@ export const useExamDashboardStyles = makeStyles({
     flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
-    ...shorthands.gap('16px'),
+    gap: '16px',
     marginTop: '20px',
   },
   recordBtnsGroup: {
     display: 'flex',
-    ...shorthands.gap('12px'),
+    gap: '12px',
   },
   actionBtn: {
     fontWeight: 600,
@@ -124,7 +124,7 @@ export const useExamDashboardStyles = makeStyles({
   loadingRow: {
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('12px'),
+    gap: '12px',
   },
   iconLg: {
     width: '32px',

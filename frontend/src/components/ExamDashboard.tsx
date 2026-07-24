@@ -153,7 +153,7 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
           />
         </div>
 
-        <Title3 className={styles.questionTitle}>
+        <Text className={styles.questionTitle}>
           {isLoading ? (
             <span className={styles.loadingRow}>
               <Spinner size="tiny" /> Loading next question...
@@ -161,7 +161,7 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
           ) : (
             currentQuestion
           )}
-        </Title3>
+        </Text>
       </Card>
 
       {/* Transcription Area */}
