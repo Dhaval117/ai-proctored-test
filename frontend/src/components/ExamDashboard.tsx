@@ -18,7 +18,7 @@ import {
   CheckmarkCircle24Filled,
 } from '@fluentui/react-icons'
 import { useSpeech } from '../hooks/useSpeech'
-import { useExamDashboardStyles } from './ExamDashboard.styles'
+import { useExamDashboardStyles } from "./styles/ExamDashboard.styles"
 
 interface ExamDashboardProps {
   sessionId: string

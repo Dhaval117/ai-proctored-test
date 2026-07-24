@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { useFaceDetection } from './useFaceDetection'
+import { useFaceDetection } from "../useFaceDetection"
 
 // Mock face-api
 const {

@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import AdminReportPage from './AdminReportPage'
-import { api } from '../lib/api'
-import { ThemeProvider } from '../context/ThemeContext'
+import AdminReportPage from "../AdminReportPage"
+import { api } from "../../lib/api"
+import { ThemeProvider } from "../../context/ThemeContext"
 
 vi.mock('../lib/api', () => ({
   api: {

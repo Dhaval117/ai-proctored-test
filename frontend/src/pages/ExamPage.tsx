@@ -30,8 +30,8 @@ import { useProctor } from '../hooks/useProctor'
 import { useFaceDetection } from '../hooks/useFaceDetection'
 import { ExamDashboard } from '../components/ExamDashboard'
 import { ThemeToggle } from '../components/ThemeToggle'
-import { useExamStyles } from './ExamPage.styles'
-import { useCommonStyles } from './common.styles'
+import { useExamStyles } from "./styles/ExamPage.styles"
+import { useCommonStyles } from "./styles/common.styles"
 
 export default function ExamPage() {
   const styles = useExamStyles()

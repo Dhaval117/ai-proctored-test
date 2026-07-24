@@ -35,8 +35,8 @@ import {
 } from '@fluentui/react-icons'
 import { api, type AdminSessionSummary } from '../lib/api'
 import { ThemeToggle } from '../components/ThemeToggle'
-import { useAdminStyles } from './AdminPage.styles'
-import { useCommonStyles } from './common.styles'
+import { useAdminStyles } from "./styles/AdminPage.styles"
+import { useCommonStyles } from "./styles/common.styles"
 
 export default function AdminPage() {
   const styles = useAdminStyles()

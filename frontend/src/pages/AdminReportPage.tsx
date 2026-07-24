@@ -35,8 +35,8 @@ import {
 } from '@fluentui/react-icons'
 import { api, type SessionReport, type QATranscriptItem, type ProctoringLogItem } from '../lib/api'
 import { ThemeToggle } from '../components/ThemeToggle'
-import { useAdminReportStyles } from './AdminReportPage.styles'
-import { useCommonStyles } from './common.styles'
+import { useAdminReportStyles } from "./styles/AdminReportPage.styles"
+import { useCommonStyles } from "./styles/common.styles"
 
 export default function AdminReportPage() {
   const styles = useAdminReportStyles()

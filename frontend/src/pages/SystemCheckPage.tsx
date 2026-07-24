@@ -13,7 +13,6 @@ import { useNavigate } from 'react-router-dom'
 import {
   Card,
   Title1,
-  Title3,
   Text,
   Button,
   Spinner,
@@ -39,8 +38,8 @@ import { useNetworkCheck, type CheckStatus } from '../lib/useNetworkCheck'
 import { validateReferencePhoto, ensureFaceApiModelsLoaded } from '../lib/photoValidation'
 import { SETUP_STORAGE_KEY, type CandidateFormData } from './SetupPage'
 import { ThemeToggle } from '../components/ThemeToggle'
-import { useSystemCheckStyles } from './SystemCheckPage.styles'
-import { useCommonStyles } from './common.styles'
+import { useSystemCheckStyles } from "./styles/SystemCheckPage.styles"
+import { useCommonStyles } from "./styles/common.styles"
 
 export const PHOTO_STORAGE_KEY = 'proctor_photo'
 

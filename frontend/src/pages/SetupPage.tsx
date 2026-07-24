@@ -28,8 +28,8 @@ import {
   Desktop24Filled,
 } from '@fluentui/react-icons'
 import { ThemeToggle } from '../components/ThemeToggle'
-import { useSetupStyles } from './SetupPage.styles'
-import { useCommonStyles } from './common.styles'
+import { useSetupStyles } from "./styles/SetupPage.styles"
+import { useCommonStyles } from "./styles/common.styles"
 
 const TECH_CHIPS = [
   'Python',

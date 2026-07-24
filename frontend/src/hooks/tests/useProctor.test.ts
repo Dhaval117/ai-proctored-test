@@ -1,7 +1,7 @@
 import { renderHook, act, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useProctor } from './useProctor'
-import { api } from '../lib/api'
+import { useProctor } from "../useProctor"
+import { api } from "../../lib/api"
 
 // Mock the API module
 vi.mock('../lib/api', () => ({
