@@ -37,6 +37,7 @@ import { api, type AdminSessionSummary } from '../lib/api'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useAdminStyles } from "./styles/AdminPage.styles"
 import { useCommonStyles } from "./styles/common.styles"
+import { ADMIN_PAGE_SIZE } from '../utils/constants'
 
 export default function AdminPage() {
   const styles = useAdminStyles()
@@ -44,7 +45,6 @@ export default function AdminPage() {
   const [sessions, setSessions] = useState<AdminSessionSummary[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [page, setPage] = useState(1)
-  const pageSize = 10
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
@@ -61,7 +61,7 @@ export default function AdminPage() {
         language: languageFilter || undefined,
         search: searchQuery || undefined,
         page,
-        page_size: pageSize,
+        page_size: ADMIN_PAGE_SIZE,
       })
       setSessions(res.sessions)
       setTotalCount(res.total)
@@ -83,7 +83,7 @@ export default function AdminPage() {
     fetchSessions()
   }
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const totalPages = Math.max(1, Math.ceil(totalCount / ADMIN_PAGE_SIZE))
 
   const getStatusBadge = (status: string) => {
     switch (status) {

@@ -40,17 +40,13 @@ import { SETUP_STORAGE_KEY, type CandidateFormData } from './SetupPage'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useSystemCheckStyles } from "./styles/SystemCheckPage.styles"
 import { useCommonStyles } from "./styles/common.styles"
+import {
+  PHOTO_STORAGE_KEY,
+  type SystemCheckStep as Step,
+  SYSTEM_CHECK_STEPS as STEPS,
+} from '../utils/constants'
 
-export const PHOTO_STORAGE_KEY = 'proctor_photo'
 
-type Step = 'camera' | 'microphone' | 'photo' | 'network'
-
-const STEPS: { id: Step; label: string; icon: React.ReactNode }[] = [
-  { id: 'camera', label: 'Camera', icon: <Camera20Regular /> },
-  { id: 'microphone', label: 'Microphone', icon: <Mic20Regular /> },
-  { id: 'photo', label: 'Photo', icon: <Person20Regular /> },
-  { id: 'network', label: 'Network', icon: <Wifi2Regular /> },
-]
 
 function VolumeBar({ level }: { level: number }) {
   const styles = useSystemCheckStyles()

@@ -30,29 +30,13 @@ import {
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useSetupStyles } from "./styles/SetupPage.styles"
 import { useCommonStyles } from "./styles/common.styles"
+import {
+  TECH_CHIPS,
+  EXPERIENCE_OPTIONS,
+  SETUP_STORAGE_KEY,
+} from '../utils/constants'
 
-const TECH_CHIPS = [
-  'Python',
-  'JavaScript',
-  'TypeScript',
-  'Java',
-  'C++',
-  'Go',
-  'Rust',
-  'React',
-  'Node.js',
-  'System Design',
-]
 
-const EXPERIENCE_OPTIONS = [
-  { label: '< 1 yr', value: 0 },
-  { label: '1–2 yrs', value: 1 },
-  { label: '3–5 yrs', value: 3 },
-  { label: '6–10 yrs', value: 6 },
-  { label: '10+ yrs', value: 10 },
-]
-
-export const SETUP_STORAGE_KEY = 'proctor_setup_data'
 
 export interface CandidateFormData {
   name: string
