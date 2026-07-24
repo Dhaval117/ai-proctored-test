@@ -1,6 +1,6 @@
 import * as faceapi from '@vladmandic/face-api'
 import { useEffect, useRef, useState } from 'react'
-import { PHOTO_STORAGE_KEY } from '../pages/SystemCheckPage'
+import { PHOTO_STORAGE_KEY } from '../utils/constants'
 import type { ViolationType, SeverityLevel } from '../lib/api'
 
 export function useFaceDetection(
@@ -9,7 +9,7 @@ export function useFaceDetection(
 ) {
   const [isModelsLoaded, setIsModelsLoaded] = useState(false)
   const [refDescriptor, setRefDescriptor] = useState<Float32Array | null>(null)
-  
+
   // Track consecutive seconds without a face
   const noFaceCountRef = useRef(0)
   // Track if we've recently reported a violation to prevent spamming
@@ -24,7 +24,7 @@ export function useFaceDetection(
           faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
           faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
         ])
-        
+
         if (!mounted) return
         setIsModelsLoaded(true)
 
@@ -34,11 +34,11 @@ export function useFaceDetection(
           const img = new Image()
           img.src = photoDataUrl
           await new Promise((resolve) => { img.onload = resolve })
-          
+
           const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
             .withFaceLandmarks()
             .withFaceDescriptor()
-            
+
           if (mounted && detections) {
             setRefDescriptor(detections.descriptor)
           } else {
@@ -49,7 +49,7 @@ export function useFaceDetection(
         console.error("Failed to initialize Face-API:", err)
       }
     }
-    
+
     load()
     return () => { mounted = false }
   }, [])
@@ -90,7 +90,7 @@ export function useFaceDetection(
           // 1 Face, check identity
           const face = detections[0]
           const distance = faceapi.euclideanDistance(face.descriptor, refDescriptor)
-          
+
           // Using 0.5 as threshold for stricter matching
           if (distance > 0.5) {
             const snapshot = captureSnapshot(video)

@@ -5,6 +5,7 @@ import {
   Person20Regular,
   Wifi2Regular,
 } from '@fluentui/react-icons'
+import { tokens } from '@fluentui/react-components'
 
 // --- Setup Page Constants ---
 
@@ -43,6 +44,12 @@ export const SYSTEM_CHECK_STEPS: { id: SystemCheckStep; label: string; icon: Rea
   { id: 'photo', label: 'Photo', icon: <Person20Regular /> },
   { id: 'network', label: 'Network', icon: <Wifi2Regular /> },
 ]
+export const QUALITY_CONFIG = {
+  excellent: { color: tokens.colorPaletteGreenForeground1, label: 'Excellent', bg: tokens.colorPaletteGreenBackground1 },
+  good: { color: tokens.colorPaletteGreenForeground2, label: 'Good', bg: tokens.colorPaletteGreenBackground1 },
+  fair: { color: tokens.colorPaletteYellowForeground1, label: 'Fair', bg: tokens.colorPaletteYellowBackground1 },
+  poor: { color: tokens.colorPaletteRedForeground1, label: 'Poor', bg: tokens.colorPaletteRedBackground1 },
+}
 
 // --- Admin Page Constants ---
 
