@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { validateReferencePhoto, checkImageClarity, ensureFaceApiModelsLoaded } from './photoValidation'
+import { validateReferencePhoto, checkImageClarity, ensureFaceApiModelsLoaded } from "../photoValidation"
 
 // Mock face-api
 const { mockLoadFromUri, mockDetectAllFaces } = vi.hoisted(() => {

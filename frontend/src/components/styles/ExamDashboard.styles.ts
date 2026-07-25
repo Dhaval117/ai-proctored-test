@@ -1,0 +1,106 @@
+import { makeStyles, tokens } from '@fluentui/react-components'
+
+export const useExamDashboardStyles = makeStyles({
+  dashboardContainer: {
+    width: '100%',
+    maxWidth: '672px',
+    margin: 'auto auto 0px auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24px',
+  },
+  speechErrorBox: {
+    padding: '12px 16px',
+    borderRadius: tokens.borderRadiusMedium,
+    backgroundColor: tokens.colorPaletteRedBackground1,
+    border: `1px solid ${tokens.colorPaletteRedBorder1}`,
+    color: tokens.colorPaletteRedForeground1,
+    fontSize: '13px',
+  },
+  questionCard: {
+    padding: '24px',
+    borderRadius: tokens.borderRadiusLarge,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    backgroundColor: tokens.colorNeutralBackground1,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  speakingProgressBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '3px',
+    backgroundColor: tokens.colorBrandBackground,
+  },
+  questionHeaderRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  badgesGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  questionTitle: {
+    display: 'block',
+    fontWeight: 600,
+    lineHeight: 1.5,
+    fontSize: tokens.fontSizeBase500,
+    color: tokens.colorNeutralForeground1,
+  },
+  transcriptionCard: {
+    padding: '24px',
+    borderRadius: tokens.borderRadiusLarge,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    backgroundColor: tokens.colorNeutralBackground1,
+    position: 'relative',
+  },
+  recordingBadge: {
+    position: 'absolute',
+    top: '16px',
+    right: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '12px',
+    fontWeight: 600,
+    color: tokens.colorPaletteRedForeground1,
+  },
+  yourAnswerWrapper: {
+    marginBottom: '12px',
+  },
+  yourAnswerLabel: {
+    fontWeight: 600,
+    color: tokens.colorNeutralForeground2,
+  },
+  textareaFull: {
+    width: '100%',
+    height: '130px',
+  },
+  actionsRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '16px',
+    marginTop: '20px',
+  },
+  recordBtnsGroup: {
+    display: 'flex',
+    gap: '12px',
+  },
+  actionBtn: {
+    fontWeight: 600,
+  },
+  loadingRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  iconLg: {
+    width: '32px',
+    height: '32px',
+  },
+})

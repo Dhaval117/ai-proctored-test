@@ -1,7 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { useFaceDetection } from './useFaceDetection'
-import { PHOTO_STORAGE_KEY } from '../pages/SystemCheckPage'
+import { useFaceDetection } from "../useFaceDetection"
 
 // Mock face-api
 const {
@@ -43,7 +42,7 @@ describe('useFaceDetection', () => {
     Storage.prototype.getItem = vi.fn().mockReturnValue('data:image/png;base64,mockphoto')
     
     // Mock Image loading
-    global.Image = class {
+    globalThis.Image = class {
       onload: () => void = () => {}
       set src(_val: string) {
         setTimeout(() => {
@@ -83,7 +82,7 @@ describe('useFaceDetection', () => {
     const mockWithFaceLandmarks = vi.fn().mockReturnValue({ withFaceDescriptor: mockWithFaceDescriptor })
     mockDetectSingleFace.mockReturnValue({ withFaceLandmarks: mockWithFaceLandmarks })
 
-    const { result } = renderHook(() => useFaceDetection(videoRef as any, reportViolation))
+    const { result } = renderHook(() => useFaceDetection(videoRef as any, reportViolation as any))
 
     expect(result.current.isModelsLoaded).toBe(false)
 
@@ -105,7 +104,7 @@ describe('useFaceDetection', () => {
     const mockWithFaceDescriptors = vi.fn().mockResolvedValue([])
     mockDetectAllFaces.mockReturnValue({ withFaceLandmarks: vi.fn().mockReturnValue({ withFaceDescriptors: mockWithFaceDescriptors }) })
 
-    const { result } = renderHook(() => useFaceDetection(videoRef as any, reportViolation))
+    const { result } = renderHook(() => useFaceDetection(videoRef as any, reportViolation as any))
 
     await waitFor(() => expect(result.current.hasRefDescriptor).toBe(true))
 
@@ -131,7 +130,7 @@ describe('useFaceDetection', () => {
     ])
     mockDetectAllFaces.mockReturnValue({ withFaceLandmarks: vi.fn().mockReturnValue({ withFaceDescriptors: mockWithFaceDescriptors }) })
 
-    const { result } = renderHook(() => useFaceDetection(videoRef as any, reportViolation))
+    const { result } = renderHook(() => useFaceDetection(videoRef as any, reportViolation as any))
 
     await waitFor(() => expect(result.current.hasRefDescriptor).toBe(true))
 
@@ -158,7 +157,7 @@ describe('useFaceDetection', () => {
     // Mock euclidean distance to return 0.6 (violation)
     mockEuclideanDistance.mockReturnValue(0.6)
 
-    const { result } = renderHook(() => useFaceDetection(videoRef as any, reportViolation))
+    const { result } = renderHook(() => useFaceDetection(videoRef as any, reportViolation as any))
 
     await waitFor(() => expect(result.current.hasRefDescriptor).toBe(true))
 
@@ -185,7 +184,7 @@ describe('useFaceDetection', () => {
     // Mock euclidean distance to return 0.2 (no violation)
     mockEuclideanDistance.mockReturnValue(0.2)
 
-    const { result } = renderHook(() => useFaceDetection(videoRef as any, reportViolation))
+    const { result } = renderHook(() => useFaceDetection(videoRef as any, reportViolation as any))
 
     await waitFor(() => expect(result.current.hasRefDescriptor).toBe(true))
 

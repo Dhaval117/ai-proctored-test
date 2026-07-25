@@ -1,8 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import AdminReportPage from './AdminReportPage'
-import { api } from '../lib/api'
+import AdminReportPage from "../AdminReportPage"
+import { api } from "../../lib/api"
+import { ThemeProvider } from "../../context/ThemeContext"
 
 vi.mock('../lib/api', () => ({
   api: {
@@ -52,11 +53,13 @@ describe('AdminReportPage (Story 5.2)', () => {
     })
 
     render(
-      <MemoryRouter initialEntries={['/admin/sessions/123e4567-e89b-12d3-a456-426614174000']}>
-        <Routes>
-          <Route path="/admin/sessions/:id" element={<AdminReportPage />} />
-        </Routes>
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter initialEntries={['/admin/sessions/123e4567-e89b-12d3-a456-426614174000']}>
+          <Routes>
+            <Route path="/admin/sessions/:id" element={<AdminReportPage />} />
+          </Routes>
+        </MemoryRouter>
+      </ThemeProvider>
     )
 
     await waitFor(() => {

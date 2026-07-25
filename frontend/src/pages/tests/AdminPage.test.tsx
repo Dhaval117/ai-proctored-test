@@ -1,8 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
-import AdminPage from './AdminPage'
-import { api } from '../lib/api'
+import AdminPage from "../AdminPage"
+import { api } from "../../lib/api"
+import { ThemeProvider } from "../../context/ThemeContext"
 
 vi.mock('../lib/api', () => ({
   api: {
@@ -36,9 +37,11 @@ describe('AdminPage (Story 5.1)', () => {
     })
 
     render(
-      <BrowserRouter>
-        <AdminPage />
-      </BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
+          <AdminPage />
+        </BrowserRouter>
+      </ThemeProvider>
     )
 
     expect(screen.getByText(/Admin Portal — Exam Sessions/i)).toBeInTheDocument()
