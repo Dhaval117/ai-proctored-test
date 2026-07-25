@@ -18,6 +18,7 @@ from sqlalchemy.orm import sessionmaker, Session
 
 # ── Set SQLite test DB before any app import ─────────────────────────────────
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["PROCTORING_ENABLED"] = "true"
 
 from app.main import app  # noqa: E402
 from app.database import Base, get_db  # noqa: E402
@@ -263,6 +264,59 @@ class TestSubmitAnswer:
             json={**VALID_ANSWER_PAYLOAD, "transcribed_text": ""},
         )
         assert r.status_code == 422
+
+    def test_submit_bad_answer_preserves_main_feedback(self, client):
+        from unittest.mock import patch
+        
+        class CustomMockLLM:
+            def __init__(self, **kwargs):
+                self.invoke_count = 0
+                self.struct_count = 0
+            def invoke(self, prompt):
+                from langchain_core.messages import AIMessage
+                self.invoke_count += 1
+                return AIMessage(content=f"Custom mock question {self.invoke_count}")
+            def with_structured_output(self, schema):
+                outer_self = self
+                class MockStructured:
+                    def invoke(self, prompt):
+                        outer_self.struct_count += 1
+                        if outer_self.struct_count == 1:
+                            return schema(is_satisfactory=False, feedback="Main answer lacking", action="followup", score=5)
+                        else:
+                            return schema(is_satisfactory=True, feedback="Follow-up good", action="next_question", score=8)
+                return MockStructured()
+
+        with patch("app.orchestrator.nodes.get_llm", return_value=CustomMockLLM()):
+            r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+            session_id = r_create.json()["session_id"]
+            
+            client.get(f"/api/sessions/{session_id}/next-question")
+            
+            # Answer 1 triggers follow-up
+            r1 = client.post(f"/api/sessions/{session_id}/submit-answer", json=VALID_ANSWER_PAYLOAD)
+            assert r1.status_code == 200
+            assert r1.json()["next_action"] == "FOLLOW_UP"
+            
+            client.get(f"/api/sessions/{session_id}/next-question")
+            
+            # Answer 2 finishes it
+            r2 = client.post(f"/api/sessions/{session_id}/submit-answer", json=VALID_ANSWER_PAYLOAD)
+            assert r2.status_code == 200
+            assert r2.json()["next_action"] == "NEXT_QUESTION"
+            
+            # Verify via admin endpoint
+            r_admin = client.get(f"/api/admin/sessions/{session_id}")
+            qas = r_admin.json()["qa_transcript"]
+            
+            assert len(qas) == 2
+            assert qas[0]["is_follow_up"] is False
+            assert qas[0]["evaluation_feedback"] == "Main answer lacking"
+            assert qas[0]["evaluation_score"] == 8  # Score should update to latest score
+            
+            assert qas[1]["is_follow_up"] is True
+            assert qas[1]["evaluation_feedback"] == "Follow-up good"
+            assert qas[1]["evaluation_score"] is None
 
 
 # ─────────────────────────────────────────────

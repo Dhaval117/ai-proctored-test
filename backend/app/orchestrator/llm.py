@@ -43,6 +43,6 @@ def get_llm():
 
 class ProcessAnswerResult(BaseModel):
     is_satisfactory: bool = Field(description="True if the answer is satisfactory and no follow-up is needed, False otherwise.")
-    feedback: str = Field(description="Internal feedback on the candidate's answer.")
+    feedback: str = Field(description="Brief feedback explaining the reasons for the specific numeric score you gave to the candidate's answer.")
     action: str = Field(description="Must be 'followup' or 'next_question'.")
     score: int = Field(description="Numerical score between 0 and 10 evaluating the candidate's answer performance on this complete question topic including any follow-ups (0=poor/incorrect, 10=excellent/comprehensive).", ge=0, le=10)

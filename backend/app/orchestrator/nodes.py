@@ -53,7 +53,7 @@ Task & Evaluation Rules:
    - Currently, {followup_cnt} follow-up question(s) have been asked for Question #{current_q_num}.
    - Since {followup_cnt} < {MAX_FOLLOW_UPS_PER_QUESTION}: If the candidate's answer could be probed deeper, clarified, challenged with an edge case or real-world scenario, or is incomplete/superficial, you MUST recommend action 'followup'.
    - Only recommend action 'next_question' if {followup_cnt} >= {MAX_FOLLOW_UPS_PER_QUESTION} OR if the candidate's answer is already exceptionally exhaustive and completely covers every nuance.
-3. Provide internal feedback on the candidate's answer and the numeric score (0 to 10)."""
+3. Provide brief feedback explaining the reasons for the specific numeric score you gave to the candidate's answer."""
 
     result = llm.invoke(prompt)
     score = getattr(result, "score", 8)
@@ -63,9 +63,9 @@ Task & Evaluation Rules:
         score = 8
     
     if result.action == "followup" and state.get("followup_count", 0) < MAX_FOLLOW_UPS_PER_QUESTION:
-        return {"current_topic": result.feedback, "last_score": score}
+        return {"current_topic": result.feedback, "last_score": score, "last_feedback": result.feedback}
     else:
-        return {"current_topic": "next_question_requested", "last_score": score}
+        return {"current_topic": "next_question_requested", "last_score": score, "last_feedback": result.feedback}
 
 def generate_followup_node(state: InterviewState) -> dict:
     llm = get_llm()

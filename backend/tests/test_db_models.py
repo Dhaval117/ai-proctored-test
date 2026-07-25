@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 # ── Override DATABASE_URL before importing app modules ───────────────────────
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["PROCTORING_ENABLED"] = "true"
 
 from app.database import Base  # noqa: E402  (import after env override)
 from app import crud  # noqa: E402

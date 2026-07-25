@@ -11,3 +11,4 @@ class InterviewState(TypedDict):
     current_topic: str
     is_terminated: bool
     last_score: int
+    last_feedback: str
