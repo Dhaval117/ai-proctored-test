@@ -256,9 +256,10 @@ class TestSubmitAnswer:
         assert body["next_action"] in ("FOLLOW_UP", "NEXT_QUESTION", "EXAM_COMPLETE")
 
     def test_empty_answer_rejected(self, client):
-        from app.mock_data import SESSION_ID
+        r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+        session_id = r_create.json()["session_id"]
         r = client.post(
-            f"/api/sessions/{SESSION_ID}/submit-answer",
+            f"/api/sessions/{session_id}/submit-answer",
             json={**VALID_ANSWER_PAYLOAD, "transcribed_text": ""},
         )
         assert r.status_code == 422
@@ -269,31 +270,37 @@ class TestSubmitAnswer:
 # ─────────────────────────────────────────────
 
 class TestLogEvent:
+    def _create_session(self, client) -> str:
+        r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+        session_id = r_create.json()["session_id"]
+        client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
+        return session_id
+
     def test_first_violation_returns_active(self, client):
-        from app.mock_data import SESSION_ID
-        r = client.post(f"/api/sessions/{SESSION_ID}/log-event", json=VALID_EVENT_PAYLOAD)
+        session_id = self._create_session(client)
+        r = client.post(f"/api/sessions/{session_id}/log-event", json=VALID_EVENT_PAYLOAD)
         assert r.status_code == 200
         body = r.json()
         assert body["violation_count"] == 1
         assert body["session_status"] == "ACTIVE"
 
     def test_third_violation_suspends_session(self, client):
-        from app.mock_data import SESSION_ID
+        session_id = self._create_session(client)
         for _ in range(3):
-            r = client.post(f"/api/sessions/{SESSION_ID}/log-event", json=VALID_EVENT_PAYLOAD)
+            r = client.post(f"/api/sessions/{session_id}/log-event", json=VALID_EVENT_PAYLOAD)
         assert r.json()["session_status"] == "SUSPENDED"
 
     def test_low_severity_does_not_suspend(self, client):
-        from app.mock_data import SESSION_ID
+        session_id = self._create_session(client)
         low_payload = {**VALID_EVENT_PAYLOAD, "severity": "LOW"}
         for _ in range(5):
-            r = client.post(f"/api/sessions/{SESSION_ID}/log-event", json=low_payload)
+            r = client.post(f"/api/sessions/{session_id}/log-event", json=low_payload)
         assert r.json()["session_status"] == "ACTIVE"
 
     def test_invalid_event_type_rejected(self, client):
-        from app.mock_data import SESSION_ID
+        session_id = self._create_session(client)
         r = client.post(
-            f"/api/sessions/{SESSION_ID}/log-event",
+            f"/api/sessions/{session_id}/log-event",
             json={**VALID_EVENT_PAYLOAD, "event_type": "INVALID_TYPE"},
         )
         assert r.status_code == 422
@@ -309,9 +316,13 @@ class TestProctoringConfig:
 
     def test_log_event_when_disabled(self, client):
         from unittest.mock import patch
-        from app.mock_data import SESSION_ID
-        with patch("app.routers.mock_router.PROCTORING_ENABLED", False):
-            r = client.post(f"/api/sessions/{SESSION_ID}/log-event", json=VALID_EVENT_PAYLOAD)
+        r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+        session_id = r_create.json()["session_id"]
+        client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
+        
+        with patch("app.routers.proctor_router.PROCTORING_ENABLED", False), \
+             patch("app.crud.PROCTORING_ENABLED", False):
+            r = client.post(f"/api/sessions/{session_id}/log-event", json=VALID_EVENT_PAYLOAD)
             assert r.status_code == 200
             body = r.json()
             assert body["violation_count"] == 0
