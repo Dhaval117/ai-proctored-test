@@ -1,14 +1,10 @@
 """
 FastAPI application entrypoint for the AI Proctored Verbal Examination System.
-
-Story 1.1: API contract established (mock routers).
-Story 1.3: Session routes replaced with real DB-backed implementation.
-           Remaining routes (exam, proctoring, admin) still use mock router.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import mock_router, session_router, exam_router, admin_router
+from app.routers import proctor_router, session_router, exam_router, admin_router
 
 app = FastAPI(
     title="AI Proctored Verbal Examination API",
@@ -35,9 +31,7 @@ app.add_middleware(
 # ── Real DB-backed routers ──────────────────────────────────
 app.include_router(session_router.router)
 app.include_router(admin_router.router)
-
-# ── Remaining mock routes ────────────────
-app.include_router(mock_router.router)
+app.include_router(proctor_router.router)
 app.include_router(exam_router.router)
 
 
