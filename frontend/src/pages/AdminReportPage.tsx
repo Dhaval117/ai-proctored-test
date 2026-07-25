@@ -98,13 +98,19 @@ export default function AdminReportPage() {
 
   const { session, qa_transcript, proctoring_logs } = report
 
-  const scoredItems = qa_transcript.filter(
-    (q: QATranscriptItem) => !q.is_follow_up && q.evaluation_score !== null && q.evaluation_score !== undefined
+  const mainQuestions = qa_transcript.filter((q: QATranscriptItem) => !q.is_follow_up)
+  const scoredItems = mainQuestions.filter(
+    (q: QATranscriptItem) => q.evaluation_score !== null && q.evaluation_score !== undefined
   )
   const avgScore =
     scoredItems.length > 0
       ? (scoredItems.reduce((acc: number, q: QATranscriptItem) => acc + (q.evaluation_score || 0), 0) / scoredItems.length).toFixed(1)
       : null
+
+  const enrichedTranscript = qa_transcript.map((qa, i, arr) => {
+    const mainQNum = arr.slice(0, i + 1).filter(q => !q.is_follow_up).length;
+    return { ...qa, display_number: mainQNum };
+  })
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -190,7 +196,7 @@ export default function AdminReportPage() {
                   Questions Answered
                 </Text>
                 <Text className={styles.metricValueBrand}>
-                  {qa_transcript.length} / 5
+                  {mainQuestions.length} / 5
                 </Text>
               </div>
 
@@ -214,8 +220,8 @@ export default function AdminReportPage() {
                       session.risk_score >= 40
                         ? tokens.colorPaletteRedForeground1
                         : session.risk_score >= 15
-                        ? tokens.colorPaletteYellowForeground1
-                        : tokens.colorPaletteGreenForeground1,
+                          ? tokens.colorPaletteYellowForeground1
+                          : tokens.colorPaletteGreenForeground1,
                   }}
                 >
                   {session.risk_score}
@@ -240,17 +246,17 @@ export default function AdminReportPage() {
         {/* Tab 1: Dialog Transcript */}
         {activeTab === 'transcript' && (
           <div className="space-y-4">
-            {qa_transcript.length === 0 ? (
+            {enrichedTranscript.length === 0 ? (
               <Card className={styles.emptyTranscriptCard}>
                 No interview questions recorded for this session yet.
               </Card>
             ) : (
-              qa_transcript.map((qa: QATranscriptItem, i: number) => (
+              enrichedTranscript.map((qa, i: number) => (
                 <Card key={qa.question_id || i} className={`${styles.qaCard} shadow-sm`}>
                   <div className="flex items-center justify-between text-xs mb-3">
                     <div className="flex items-center gap-2">
                       <Badge appearance="tint" color="brand">
-                        Question #{qa.sequence_number}
+                        Question #{qa.display_number}
                       </Badge>
                       {qa.is_follow_up && (
                         <Badge appearance="tint" color="important">
@@ -268,9 +274,6 @@ export default function AdminReportPage() {
 
                   {/* AI Question */}
                   <div className="mb-4">
-                    <Text className={styles.qaSectionLabelBrand}>
-                      AI Interviewer Prompt
-                    </Text>
                     <div className={styles.qaPromptBox}>
                       {qa.question_text}
                     </div>

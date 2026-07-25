@@ -15,17 +15,20 @@ import {
   RecordStop20Filled,
   Send20Filled,
   Speaker220Regular,
-  CheckmarkCircle24Filled,
+  ClipboardTextEditFilled,
 } from '@fluentui/react-icons'
 import { useSpeech } from '../hooks/useSpeech'
 import { useExamDashboardStyles } from "./styles/ExamDashboard.styles"
+import { useExamStyles } from "../pages/styles/ExamPage.styles"
 
 interface ExamDashboardProps {
   sessionId: string
+  onExamComplete?: (isComplete: boolean) => void
 }
 
-export function ExamDashboard({ sessionId }: ExamDashboardProps) {
+export function ExamDashboard({ sessionId, onExamComplete }: ExamDashboardProps) {
   const styles = useExamDashboardStyles()
+  const examStyles = useExamStyles()
   const [currentQuestion, setCurrentQuestion] = useState('')
   const [questionNumber, setQuestionNumber] = useState(1)
   const [totalQuestions, setTotalQuestions] = useState(0)
@@ -33,7 +36,6 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [examComplete, setExamComplete] = useState(false)
 
   const {
     isSpeaking,
@@ -59,8 +61,6 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
       if (data.total_main_questions) {
         setTotalQuestions(data.total_main_questions)
       }
-
-      speak(data.question_text)
     } catch (err) {
       console.error(err)
       setCurrentQuestion('Error: Could not load the next question. Please ensure the backend is running or refresh the page.')
@@ -92,7 +92,7 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
       const data = await res.json()
 
       if (data.next_action === 'EXAM_COMPLETE') {
-        setExamComplete(true)
+        if (onExamComplete) onExamComplete(true)
       } else {
         setTranscript('')
         await fetchNextQuestion()
@@ -104,22 +104,21 @@ export function ExamDashboard({ sessionId }: ExamDashboardProps) {
     }
   }
 
-  if (examComplete) {
-    return (
-      <div className={`${styles.completeBox} animate-fade-in`}>
-        <div className={styles.completeIconBox}>
-          <CheckmarkCircle24Filled className={styles.iconLg} />
-        </div>
-        <Title2 className={styles.completeTitle}>Exam Complete</Title2>
-        <Text className={styles.completeText}>
-          Thank you for completing the interview. Your results have been saved.
-        </Text>
-      </div>
-    )
-  }
-
   return (
     <div className={`${styles.dashboardContainer} animate-fade-in`}>
+      {/* Header Card */}
+      <Card className={`${examStyles.headerCard} shadow-md`}>
+        <div className={examStyles.headerIconBox}>
+          <ClipboardTextEditFilled className={examStyles.iconSm} />
+        </div>
+        <div>
+          <Title3 className={examStyles.headerTitle}>Examination</Title3>
+          <Text className={examStyles.headerSubtitle}>
+            AI-powered verbal interview in progress
+          </Text>
+        </div>
+      </Card>
+
       {speechError && (
         <div className={styles.speechErrorBox}>
           {speechError}

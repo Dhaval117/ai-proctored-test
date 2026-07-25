@@ -8,28 +8,23 @@ import { useParams } from 'react-router-dom'
 import {
   Card,
   Title1,
+  Title2,
   Text,
   Button,
   Badge,
-  Dialog,
-  DialogSurface,
-  DialogTitle,
-  DialogBody,
-  DialogContent,
-  DialogActions,
   Title3,
 } from '@fluentui/react-components'
 import {
-  Warning24Filled,
   LockClosed24Filled,
   Camera20Regular,
-  ClipboardTextEditFilled,
+  CheckmarkCircle24Filled,
 } from '@fluentui/react-icons'
 
 import { useProctor } from '../hooks/useProctor'
 import { useFaceDetection } from '../hooks/useFaceDetection'
 import { ExamDashboard } from '../components/ExamDashboard'
 import { ThemeToggle } from '../components/ThemeToggle'
+import { ProctoringWarningDialog } from '../components/ProctoringWarningDialog'
 import { useExamStyles } from "./styles/ExamPage.styles"
 import { useCommonStyles } from "./styles/common.styles"
 
@@ -40,6 +35,7 @@ export default function ExamPage() {
 
   const {
     status,
+    setStatus,
     violationCount,
     maxViolations,
     showWarningModal,
@@ -119,107 +115,86 @@ export default function ExamPage() {
           <ThemeToggle />
         </div>
 
-        <Card className={`${styles.floatingProctoring} shadow-md`}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 500 }}>AI Face Detection:</span>
-              <Badge appearance="tint" color={isModelsLoaded ? 'success' : 'warning'}>
-                {isModelsLoaded ? (hasRefDescriptor ? 'Active (Monitoring)' : 'Active (No Ref Photo)') : 'Loading Models...'}
-              </Badge>
-            </div>
+        {status !== 'COMPLETED' && (
+          <Card className={`${styles.floatingProctoring} shadow-md`}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 500 }}>AI Face Detection:</span>
+                <Badge appearance="tint" color={isModelsLoaded ? 'success' : 'warning'}>
+                  {isModelsLoaded ? (hasRefDescriptor ? 'Active (Monitoring)' : 'Active (No Ref Photo)') : 'Loading Models...'}
+                </Badge>
+              </div>
 
-            <Badge appearance="filled" color={violationCount > 0 ? 'warning' : 'subtle'} size="large">
-              Violations: {violationCount} / {maxViolations}
-            </Badge>
-
-            {allowToggle ? (
-              <Button
-                size="small"
-                appearance={isPaused ? 'outline' : 'secondary'}
-                onClick={() => setIsPaused(!isPaused)}
-                title="Click to Pause/Resume Proctoring Checks during development"
-                className={styles.proctoringBtn}
-              >
-                Proctoring: {isPaused ? 'PAUSED' : 'ACTIVE'}
-              </Button>
-            ) : (
-              <Badge
-                appearance="tint"
-                color={proctoringEnabled ? 'success' : 'warning'}
-              >
-                Proctoring: {!proctoringEnabled ? 'DISABLED' : 'ACTIVE'}
+              <Badge appearance="filled" color={violationCount > 0 ? 'warning' : 'subtle'} size="large">
+                Violations: {violationCount} / {maxViolations}
               </Badge>
-            )}
-          </div>
-        </Card>
-        <div className={styles.mainWrapper}>
-          {/* Header Card */}
-          <Card className={`${styles.headerCard} shadow-md`}>
-            <div className={styles.headerIconBox}>
-              <ClipboardTextEditFilled className={styles.iconSm} />
-            </div>
-            <div>
-              <Title3 className={styles.headerTitle}>Examination</Title3>
-              <Text className={styles.headerSubtitle}>
-                AI-powered verbal interview in progress
-              </Text>
+
+              {allowToggle ? (
+                <Button
+                  size="small"
+                  appearance={isPaused ? 'outline' : 'secondary'}
+                  onClick={() => setIsPaused(!isPaused)}
+                  title="Click to Pause/Resume Proctoring Checks during development"
+                  className={styles.proctoringBtn}
+                >
+                  Proctoring: {isPaused ? 'PAUSED' : 'ACTIVE'}
+                </Button>
+              ) : (
+                <Badge
+                  appearance="tint"
+                  color={proctoringEnabled ? 'success' : 'warning'}
+                >
+                  Proctoring: {!proctoringEnabled ? 'DISABLED' : 'ACTIVE'}
+                </Badge>
+              )}
             </div>
           </Card>
-
+        )}
+        <div className={styles.mainWrapper}>
           {/* Main Dashboard area */}
-          <ExamDashboard sessionId={sessionId!} />
+          {status === 'COMPLETED' ? (
+            <Card className={`${styles.completeBox} animate-fade-in shadow-md`}>
+              <div className={styles.completeIconBox}>
+                <CheckmarkCircle24Filled className={styles.iconLg} />
+              </div>
+              <Title2 className={styles.completeTitle}>Exam Complete</Title2>
+              <Text className={styles.completeText}>
+                Thank you for completing the interview. Your results have been saved.
+              </Text>
+            </Card>
+          ) : (
+            <ExamDashboard sessionId={sessionId!} onExamComplete={() => setStatus('COMPLETED')} />
+          )}
         </div>
       </div>
 
       {/* PiP Camera Feed */}
-      <div className={`${styles.pipContainer} shadow-2xl`}>
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className={styles.pipVideo}
-        />
-        {(!isModelsLoaded || !hasRefDescriptor) && (
-          <div className={styles.pipOverlay}>
-            <Camera20Regular className={styles.iconXs} />
-            <span className="px-2 text-center">Loading AI...</span>
-          </div>
-        )}
-      </div>
+      {status !== 'COMPLETED' && (
+        <div className={`${styles.pipContainer} shadow-2xl`}>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className={styles.pipVideo}
+          />
+          {(!isModelsLoaded || !hasRefDescriptor) && (
+            <div className={styles.pipOverlay}>
+              <Camera20Regular className={styles.iconXs} />
+              <span className="px-2 text-center">Loading AI...</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Full-Screen Warning Modal Overlay (Fluent UI Dialog) */}
-      <Dialog open={showWarningModal} modalType="alert">
-        <DialogSurface className={styles.dialogSurface}>
-          <DialogBody>
-            <div className={styles.dialogIconBox}>
-              <Warning24Filled className={styles.iconLg} />
-            </div>
-            <DialogTitle className={styles.dialogTitle}>
-              Proctoring Warning
-            </DialogTitle>
-            <DialogContent>
-              <Text className={styles.dialogText}>
-                {warningMessage || 'A proctoring violation was detected.'}
-              </Text>
-
-              <div className={styles.dialogBadge}>
-                Warning {violationCount} of {maxViolations}
-              </div>
-            </DialogContent>
-            <DialogActions className={styles.dialogActions}>
-              <Button
-                appearance="primary"
-                size="large"
-                className={styles.dialogBtn}
-                onClick={dismissWarning}
-              >
-                I Understand — Return to Exam
-              </Button>
-            </DialogActions>
-          </DialogBody>
-        </DialogSurface>
-      </Dialog>
+      <ProctoringWarningDialog
+        open={showWarningModal}
+        warningMessage={warningMessage}
+        violationCount={violationCount}
+        maxViolations={maxViolations}
+        onDismiss={dismissWarning}
+      />
     </>
   )
 }

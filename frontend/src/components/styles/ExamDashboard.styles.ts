@@ -1,33 +1,6 @@
 import { makeStyles, tokens } from '@fluentui/react-components'
 
 export const useExamDashboardStyles = makeStyles({
-  completeBox: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '32px',
-    textAlign: 'center',
-    marginTop: '24px',
-  },
-  completeIconBox: {
-    width: '64px',
-    height: '64px',
-    borderRadius: tokens.borderRadiusXLarge,
-    backgroundColor: tokens.colorPaletteGreenBackground1,
-    color: tokens.colorPaletteGreenForeground1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: '0px auto 16px auto',
-  },
-  completeTitle: {
-    display: 'block',
-    marginBottom: '8px',
-  },
-  completeText: {
-    color: tokens.colorNeutralForeground3,
-  },
   dashboardContainer: {
     width: '100%',
     maxWidth: '672px',
@@ -104,7 +77,7 @@ export const useExamDashboardStyles = makeStyles({
   },
   textareaFull: {
     width: '100%',
-    minHeight: '130px',
+    height: '130px',
   },
   actionsRow: {
     display: 'flex',

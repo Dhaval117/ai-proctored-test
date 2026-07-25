@@ -16,6 +16,7 @@ export interface ProctorActions {
   dismissWarning: () => void
   handleViolation: (type: ViolationType, severity: SeverityLevel, snapshot?: string) => Promise<void>
   setIsPaused: (paused: boolean) => void
+  setStatus: (status: ExamStatus) => void
 }
 
 const DEBOUNCE_MS = 500
@@ -196,6 +197,7 @@ export function useProctor(sessionId: string | undefined): ProctorState & Procto
     dismissWarning,
     handleViolation,
     setIsPaused,
+    setStatus,
   }
 }
 
