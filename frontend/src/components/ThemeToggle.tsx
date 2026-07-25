@@ -19,8 +19,6 @@ import { useTheme, type ThemeMode } from '../context/ThemeContext'
 const useStyles = makeStyles({
   toggleBtn: {
     fontWeight: 600,
-    border: '1px solid var(--border-subtle)',
-    borderRadius: '8px',
   },
 })
 
@@ -51,7 +49,7 @@ export const ThemeToggle: React.FC = () => {
       <MenuTrigger disableButtonEnhancement>
         <Tooltip content="Change theme (Light / Dark / System)" relationship="label">
           <Button
-            appearance="subtle"
+            appearance="secondary"
             icon={getIcon()}
             className={styles.toggleBtn}
           >
