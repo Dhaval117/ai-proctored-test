@@ -95,7 +95,9 @@ def submit_answer(session_id: uuid.UUID, body: SubmitAnswerRequest, db: Session 
     else:
         next_action = NextAction.NEXT_QUESTION
         
-    feedback = new_state.values.get("current_topic", "")
+    feedback = new_state.values.get("last_feedback", "")
+    if not feedback:
+        feedback = new_state.values.get("current_topic", "")
     if feedback == "next_question_requested" or not feedback:
         feedback = "Response evaluated successfully against core competency rubric."
         
@@ -121,7 +123,6 @@ def submit_answer(session_id: uuid.UUID, body: SubmitAnswerRequest, db: Session 
         # Always ensure the root main question holds the latest complete 0-10 score for this question topic
         if latest_qa.is_follow_up and main_qa:
             main_qa.evaluation_score = score
-            main_qa.evaluation_feedback = feedback
             db.flush()
 
         if next_action == NextAction.EXAM_COMPLETE:
