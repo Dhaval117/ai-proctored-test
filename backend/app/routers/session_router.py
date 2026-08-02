@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app import crud
+from app.config import MAX_MAIN_QUESTIONS
 from app.database import get_db
 from app.schemas import (
     CreateSessionRequest,
@@ -63,6 +64,7 @@ def _orm_to_session_detail(session, candidate) -> SessionDetail:
         risk_score=session.risk_score,
         created_at=session.created_at,
         completed_at=session.completed_at,
+        total_questions=MAX_MAIN_QUESTIONS
     )
 
 

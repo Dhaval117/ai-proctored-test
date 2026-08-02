@@ -5,7 +5,7 @@ import AdminReportPage from "../AdminReportPage"
 import { api } from "../../lib/api"
 import { ThemeProvider } from "../../context/ThemeContext"
 
-vi.mock('../lib/api', () => ({
+vi.mock('../../lib/api', () => ({
   api: {
     getAdminSessionDetail: vi.fn(),
   },
@@ -28,6 +28,7 @@ describe('AdminReportPage (Story 5.2)', () => {
         violation_count: 1,
         risk_score: 20,
         created_at: '2026-07-09T10:00:00Z',
+        total_questions: 5,
       },
       qa_transcript: [
         {
@@ -67,6 +68,9 @@ describe('AdminReportPage (Story 5.2)', () => {
       expect(screen.getByText(/Explain Python decorators\./i)).toBeInTheDocument()
       expect(screen.getByText(/Decorators wrap a function to modify its behavior\./i)).toBeInTheDocument()
       expect(screen.getByText(/Score: 9 \/ 10/i)).toBeInTheDocument()
+      
+      // Verify questions answered dynamic metric (1 answered out of 5 total)
+      expect(screen.getByText('1 / 5')).toBeInTheDocument()
     })
   })
 })

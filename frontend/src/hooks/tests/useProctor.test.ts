@@ -4,9 +4,10 @@ import { useProctor } from "../useProctor"
 import { api } from "../../lib/api"
 
 // Mock the API module
-vi.mock('../lib/api', () => ({
+vi.mock('../../lib/api', () => ({
   api: {
     logEvent: vi.fn(),
+    getSession: vi.fn().mockResolvedValue({ status: 'ACTIVE' }),
     getProctoringConfig: vi.fn().mockResolvedValue({
       proctoring_enabled: true,
       allow_toggle: true,
@@ -17,6 +18,7 @@ vi.mock('../lib/api', () => ({
 describe('useProctor', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(api.getSession).mockResolvedValue({ status: 'ACTIVE' } as any)
     vi.mocked(api.getProctoringConfig).mockResolvedValue({
       proctoring_enabled: true,
       allow_toggle: true,
@@ -146,7 +148,7 @@ describe('useProctor', () => {
     })
   })
 
-  it.skip('transitions to SUSPENDED status and stops logging', async () => {
+  it('transitions to SUSPENDED status and stops logging', async () => {
     const mockedLogEvent = vi.mocked(api.logEvent).mockResolvedValue({
       violation_count: 3,
       max_violations: 3,

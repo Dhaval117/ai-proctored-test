@@ -95,7 +95,7 @@ describe('useFaceDetection', () => {
     expect(result.current.hasRefDescriptor).toBe(true)
   })
 
-  it.skip('triggers NO_FACE violation after 3 consecutive intervals', async () => {
+  it('triggers NO_FACE violation after 3 consecutive intervals', async () => {
     // Setup reference descriptor
     const mockWithFaceDescriptor = vi.fn().mockResolvedValue({ descriptor: new Float32Array([0.1]) })
     mockDetectSingleFace.mockReturnValue({ withFaceLandmarks: vi.fn().mockReturnValue({ withFaceDescriptor: mockWithFaceDescriptor }) })
@@ -108,17 +108,12 @@ describe('useFaceDetection', () => {
 
     await waitFor(() => expect(result.current.hasRefDescriptor).toBe(true))
 
-    vi.useFakeTimers()
-    // Advance timers by 3.5 seconds asynchronously to flush promises
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(3500)
-    })
-    vi.useRealTimers()
-
-    expect(reportViolation).toHaveBeenCalledWith('NO_FACE', 'LOW')
+    await waitFor(() => {
+      expect(reportViolation).toHaveBeenCalledWith('NO_FACE', 'LOW')
+    }, { timeout: 4500 })
   })
 
-  it.skip('triggers MULTI_FACE violation when > 1 face is detected', async () => {
+  it('triggers MULTI_FACE violation when > 1 face is detected', async () => {
     // Setup reference descriptor
     const mockWithFaceDescriptor = vi.fn().mockResolvedValue({ descriptor: new Float32Array([0.1]) })
     mockDetectSingleFace.mockReturnValue({ withFaceLandmarks: vi.fn().mockReturnValue({ withFaceDescriptor: mockWithFaceDescriptor }) })
@@ -134,16 +129,12 @@ describe('useFaceDetection', () => {
 
     await waitFor(() => expect(result.current.hasRefDescriptor).toBe(true))
 
-    vi.useFakeTimers()
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1500)
-    })
-    vi.useRealTimers()
-
-    expect(reportViolation).toHaveBeenCalledWith('MULTI_FACE', 'HIGH', 'data:image/jpeg;base64,mocksnapshot')
+    await waitFor(() => {
+      expect(reportViolation).toHaveBeenCalledWith('MULTI_FACE', 'HIGH', 'data:image/jpeg;base64,mocksnapshot')
+    }, { timeout: 4500 })
   })
 
-  it.skip('triggers FACE_MISMATCH violation when distance > 0.5', async () => {
+  it('triggers FACE_MISMATCH violation when distance > 0.5', async () => {
     // Setup reference descriptor
     const mockWithFaceDescriptor = vi.fn().mockResolvedValue({ descriptor: new Float32Array([0.1]) })
     mockDetectSingleFace.mockReturnValue({ withFaceLandmarks: vi.fn().mockReturnValue({ withFaceDescriptor: mockWithFaceDescriptor }) })
@@ -161,13 +152,9 @@ describe('useFaceDetection', () => {
 
     await waitFor(() => expect(result.current.hasRefDescriptor).toBe(true))
 
-    vi.useFakeTimers()
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1500)
-    })
-    vi.useRealTimers()
-
-    expect(reportViolation).toHaveBeenCalledWith('FACE_MISMATCH', 'HIGH', 'data:image/jpeg;base64,mocksnapshot')
+    await waitFor(() => {
+      expect(reportViolation).toHaveBeenCalledWith('FACE_MISMATCH', 'HIGH', 'data:image/jpeg;base64,mocksnapshot')
+    }, { timeout: 4500 })
   })
 
   it('does not trigger violation when face matches (distance <= 0.5)', async () => {
@@ -188,12 +175,8 @@ describe('useFaceDetection', () => {
 
     await waitFor(() => expect(result.current.hasRefDescriptor).toBe(true))
 
-    vi.useFakeTimers()
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1500)
-    })
-    vi.useRealTimers()
-
+    // Wait for 2 seconds to ensure no violation is triggered
+    await new Promise((resolve) => setTimeout(resolve, 2000))
     expect(reportViolation).not.toHaveBeenCalled()
   })
 })

@@ -13,7 +13,7 @@ export function useFaceDetection(
   // Track consecutive seconds without a face
   const noFaceCountRef = useRef(0)
   // Track if we've recently reported a violation to prevent spamming
-  const lastReportTimeRef = useRef(0)
+  const lastReportTimeRef = useRef<number | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -63,7 +63,7 @@ export function useFaceDetection(
 
       // Throttle violation reporting (e.g. max 1 per 5 seconds)
       const now = Date.now()
-      if (now - lastReportTimeRef.current < 5000) return
+      if (lastReportTimeRef.current !== null && now - lastReportTimeRef.current < 5000) return
 
       try {
         const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())

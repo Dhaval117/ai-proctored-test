@@ -131,17 +131,17 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
                                 <>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1">
-                                            <Label required>Candidate Name</Label>
-                                            <Input required value={name} onChange={e => setName(e.target.value)} />
+                                            <Label required htmlFor="candidateName">Candidate Name</Label>
+                                            <Input id="candidateName" required value={name} onChange={e => setName(e.target.value)} />
                                         </div>
                                         <div className="flex flex-col gap-1">
-                                            <Label required>Candidate Email</Label>
-                                            <Input type="email" required value={email} onChange={e => setEmail(e.target.value)} />
+                                            <Label required htmlFor="candidateEmail">Candidate Email</Label>
+                                            <Input id="candidateEmail" type="email" required value={email} onChange={e => setEmail(e.target.value)} />
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        <Label required>Validity (Hours)</Label>
-                                        <Input type="number" min="1" required value={expiresIn} onChange={e => setExpiresIn(e.target.value)} />
+                                        <Label required htmlFor="validityHours">Validity (Hours)</Label>
+                                        <Input id="validityHours" type="number" min="1" required value={expiresIn} onChange={e => setExpiresIn(e.target.value)} />
                                     </div>
                                     
                                     <TabList selectedValue={selectedTab} onTabSelect={(_, d) => setSelectedTab(d.value as string)} className="mt-4">
@@ -173,12 +173,12 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1">
-                                            <Label required>Technology / Language</Label>
-                                            <Input required value={language} onChange={e => setLanguage(e.target.value)} />
+                                            <Label required htmlFor="technologyLanguage">Technology / Language</Label>
+                                            <Input id="technologyLanguage" required value={language} onChange={e => setLanguage(e.target.value)} />
                                         </div>
                                         <div className="flex flex-col gap-1">
-                                            <Label required>Years of Experience</Label>
-                                            <Input type="number" min="0" required value={experience} onChange={e => setExperience(e.target.value)} />
+                                            <Label required htmlFor="experienceYears">Years of Experience</Label>
+                                            <Input id="experienceYears" type="number" min="0" required value={experience} onChange={e => setExperience(e.target.value)} />
                                         </div>
                                     </div>
 
