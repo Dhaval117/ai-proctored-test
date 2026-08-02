@@ -35,6 +35,7 @@ import {
 } from '@fluentui/react-icons'
 import { api, type AdminSessionSummary } from '../lib/api'
 import { ThemeToggle } from '../components/ThemeToggle'
+import { CreateExamModal } from '../components/CreateExamModal'
 import { useAdminStyles } from "./styles/AdminPage.styles"
 import { useCommonStyles } from "./styles/common.styles"
 import { ADMIN_PAGE_SIZE } from '../utils/constants'
@@ -157,16 +158,19 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <Button
-            appearance="secondary"
-            size="medium"
-            icon={<ArrowCounterclockwise20Regular />}
-            onClick={() => fetchSessions()}
-            disabled={isLoading}
-            className={styles.refreshBtn}
-          >
-            Refresh Data
-          </Button>
+          <div className="flex items-center gap-2">
+            <CreateExamModal onSuccess={fetchSessions} />
+            <Button
+              appearance="secondary"
+              size="medium"
+              icon={<ArrowCounterclockwise20Regular />}
+              onClick={() => fetchSessions()}
+              disabled={isLoading}
+              className={styles.refreshBtn}
+            >
+              Refresh Data
+            </Button>
+          </div>
         </div>
 
         {/* Filter Bar */}

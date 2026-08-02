@@ -11,7 +11,7 @@
  */
 
 import { useState, useCallback } from 'react'
-import { api, type CreateSessionRequest } from './api'
+import { api } from './api'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -29,18 +29,15 @@ export interface LatencyResult {
 export interface NetworkCheckState {
   latencyStatus:   CheckStatus
   latencyResult:   LatencyResult | null
-  createStatus:    CheckStatus
   verifyStatus:    CheckStatus
-  /** Set when session creation succeeds */
-  sessionId:       string | null
   /** User-visible error message from the most recent failure */
   errorMessage:    string | null
-  /** true once all three phases have completed successfully */
+  /** true once all phases have completed successfully */
   allDone:         boolean
 }
 
 export interface NetworkCheckActions {
-  runAll: (candidateData: CreateSessionRequest, referencePhoto: string) => Promise<void>
+  runAll: (sessionId: string, referencePhoto: string) => Promise<void>
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -95,14 +92,12 @@ export function useNetworkCheck(): NetworkCheckState & NetworkCheckActions {
   const [latencyResult, setLatencyResult] = useState<LatencyResult | null>(null)
   const [pingSamples,   setPingSamples]   = useState<number[]>([])  // live samples for animation
 
-  const [createStatus, setCreateStatus] = useState<CheckStatus>('idle')
   const [verifyStatus, setVerifyStatus] = useState<CheckStatus>('idle')
-  const [sessionId,    setSessionId]    = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [allDone,      setAllDone]      = useState(false)
 
   const runAll = useCallback(async (
-    candidateData: CreateSessionRequest,
+    sessionId: string,
     referencePhoto: string,
   ) => {
     setErrorMessage(null)
@@ -129,28 +124,11 @@ export function useNetworkCheck(): NetworkCheckState & NetworkCheckActions {
       return
     }
 
-    // ── Phase 2: Create session ──────────────────────────────────────────────
-
-    setCreateStatus('running')
-    let newSessionId: string
-    try {
-      const createRes = await api.createSession(candidateData)
-      newSessionId = createRes.session_id
-      setSessionId(newSessionId)
-      setCreateStatus('success')
-    } catch (err) {
-      setCreateStatus('error')
-      setErrorMessage(
-        err instanceof Error ? err.message : 'Failed to create exam session.',
-      )
-      return
-    }
-
-    // ── Phase 3: Verify session (upload reference photo) ────────────────────
+    // ── Phase 2: Verify session (upload reference photo) ────────────────────
 
     setVerifyStatus('running')
     try {
-      await api.verifySession(newSessionId, { reference_photo: referencePhoto })
+      await api.verifySession(sessionId, { reference_photo: referencePhoto })
       setVerifyStatus('success')
       setAllDone(true)
     } catch (err) {
@@ -164,9 +142,7 @@ export function useNetworkCheck(): NetworkCheckState & NetworkCheckActions {
   return {
     latencyStatus,
     latencyResult,
-    createStatus,
     verifyStatus,
-    sessionId,
     errorMessage,
     allDone,
     runAll,

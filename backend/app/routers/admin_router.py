@@ -8,14 +8,21 @@ from __future__ import annotations
 
 import uuid
 from typing import Annotated, Optional
+from datetime import datetime, timedelta, timezone
+import io
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from pypdf import PdfReader
 
 from app import crud
 from app.database import get_db
-from app.models import ExamSession, Candidate
+from app.models import ExamSession, Candidate, AdminUser
+from app.auth import get_current_admin, verify_password, create_access_token
+from app.config import MAX_MAIN_QUESTIONS
+from app.orchestrator.llm import get_llm
 from app.schemas import (
     AdminSessionDetailResponse,
     AdminSessionListResponse,
@@ -26,11 +33,98 @@ from app.schemas import (
     SessionDetail,
     SeverityLevel,
     ViolationType,
+    TokenResponse,
+    CreateSessionRequest,
+    CreateSessionResponse,
+    ParseResumeResponse
 )
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 DbSession = Annotated[Session, Depends(get_db)]
+
+@router.post("/login", response_model=TokenResponse)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    admin = crud.get_admin_by_email(db, form_data.username)
+    if not admin or not verify_password(form_data.password, admin.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token = create_access_token(data={"sub": admin.email})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me")
+def read_users_me(current_admin: AdminUser = Depends(get_current_admin)):
+    return {"id": current_admin.id, "email": current_admin.email}
+
+@router.post("/parse-resume", response_model=ParseResumeResponse)
+def parse_resume(file: UploadFile = File(...), current_admin: AdminUser = Depends(get_current_admin)):
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+    
+    try:
+        content = file.file.read()
+        reader = PdfReader(io.BytesIO(content))
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text() + "\\n"
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse PDF: {str(e)}")
+
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="No text could be extracted from the PDF.")
+
+    llm = get_llm()
+    structured_llm = llm.with_structured_output(ParseResumeResponse)
+    
+    prompt = f"""
+    You are an expert technical recruiter. Analyze the following resume text and extract the candidate's primary programming language/technology, their total years of experience, and a concise summary of their key projects and the specific technologies used in those projects.
+    
+    Resume Text:
+    {text}
+    """
+    try:
+        result = structured_llm.invoke(prompt)
+        return result
+    except Exception as e:
+        return ParseResumeResponse(
+            language="Unknown",
+            experience_years=0,
+            projects_summary=text[:1000]
+        )
+
+@router.post("/sessions", response_model=CreateSessionResponse)
+def create_admin_session(
+    request: CreateSessionRequest,
+    db: DbSession,
+    current_admin: AdminUser = Depends(get_current_admin)
+):
+    candidate = crud.get_or_create_candidate(db, name=request.name, email=request.email)
+    
+    expires_at = None
+    if request.expires_in_hours:
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=request.expires_in_hours)
+
+    session = crud.create_session(
+        db,
+        candidate_id=candidate.id,
+        language=request.language,
+        experience_years=request.experience_years,
+        expires_at=expires_at,
+        resume_text=request.resume_text
+    )
+    db.commit()
+    db.refresh(session)
+    
+    return CreateSessionResponse(
+        session_id=uuid.UUID(session.id),
+        candidate_id=uuid.UUID(candidate.id),
+        status=ExamStatus(session.status),
+        message="Session created successfully by admin"
+    )
+
 
 
 @router.get("/sessions", response_model=AdminSessionListResponse)
@@ -41,6 +135,7 @@ def list_admin_sessions(
     search: Optional[str] = Query(None, description="Search candidate name or email"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    current_admin: AdminUser = Depends(get_current_admin),
 ):
     """
     Story 5.1: Return paginated list of candidate exam sessions with risk summaries.
@@ -92,7 +187,11 @@ def list_admin_sessions(
 
 
 @router.get("/sessions/{session_id}", response_model=AdminSessionDetailResponse)
-def get_admin_session_detail(session_id: uuid.UUID, db: DbSession):
+def get_admin_session_detail(
+    session_id: uuid.UUID, 
+    db: DbSession,
+    current_admin: AdminUser = Depends(get_current_admin)
+):
     """
     Story 5.2: Return full audit report for a session: candidate details, Q&A transcript,
     and proctoring log timeline.
@@ -115,6 +214,7 @@ def get_admin_session_detail(session_id: uuid.UUID, db: DbSession):
         risk_score=session.risk_score,
         created_at=session.created_at,
         completed_at=session.completed_at,
+        total_questions=MAX_MAIN_QUESTIONS,
     )
 
     qa_rows = crud.get_session_qa(db, str(session_id))

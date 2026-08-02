@@ -5,10 +5,30 @@ import uuid
 from app.database import get_db
 from app import crud
 from app.orchestrator import exam_graph
-from app.schemas import QuestionResponse, SubmitAnswerRequest, SubmitAnswerResponse, NextAction
+from app.schemas import QuestionResponse, SubmitAnswerRequest, SubmitAnswerResponse, NextAction, VerifySessionResponse
+from datetime import datetime, timezone
 from app.config import MAX_MAIN_QUESTIONS
 
 router = APIRouter(prefix="/api/sessions", tags=["exam"])
+
+@router.get("/{session_id}/verify", response_model=VerifySessionResponse)
+def verify_session_link(session_id: uuid.UUID, db: Session = Depends(get_db)):
+    session = crud.get_session(db, str(session_id))
+    if not session:
+        raise HTTPException(status_code=404, detail={"error": "NOT_FOUND", "message": "Session not found."})
+    
+    if session.expires_at:
+        # SQLite drops timezone info, so we ensure both sides are naive UTC datetimes for comparison
+        expires_naive = session.expires_at.replace(tzinfo=None)
+        now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
+        if expires_naive < now_naive:
+            raise HTTPException(status_code=403, detail={"error": "EXPIRED", "message": "Exam link has expired."})
+        
+    return VerifySessionResponse(
+        session_id=uuid.UUID(session.id),
+        status=session.status,
+        message="Session is valid."
+    )
 
 @router.get("/{session_id}/next-question", response_model=QuestionResponse)
 def get_next_question(session_id: uuid.UUID, db: Session = Depends(get_db)):
@@ -29,7 +49,8 @@ def get_next_question(session_id: uuid.UUID, db: Session = Depends(get_db)):
             "followup_count": 0,
             "messages": [],
             "current_topic": "Init",
-            "is_terminated": False
+            "is_terminated": False,
+            "resume_text": session.resume_text or ""
         }, config)
         state = exam_graph.get_state(config)
     elif state.next and state.next[0] != "process_answer":

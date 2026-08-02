@@ -196,7 +196,7 @@ export default function AdminReportPage() {
                   Questions Answered
                 </Text>
                 <Text className={styles.metricValueBrand}>
-                  {mainQuestions.length} / 5
+                  {mainQuestions.length} / {session.total_questions}
                 </Text>
               </div>
 

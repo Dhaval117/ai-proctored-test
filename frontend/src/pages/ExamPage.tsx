@@ -13,11 +13,13 @@ import {
   Button,
   Badge,
   Title3,
+  Spinner,
 } from '@fluentui/react-components'
 import {
   LockClosed24Filled,
   Camera20Regular,
   CheckmarkCircle24Filled,
+  DismissCircle24Regular,
 } from '@fluentui/react-icons'
 
 import { useProctor } from '../hooks/useProctor'
@@ -43,6 +45,8 @@ export default function ExamPage() {
     isPaused,
     setIsPaused,
     allowToggle,
+    isLoadingConfig,
+    error,
     proctoringEnabled,
     dismissWarning,
     handleViolation,
@@ -103,6 +107,41 @@ export default function ExamPage() {
           <div className={styles.suspendedNotice}>
             This incident has been logged. Please contact your administrator for further instructions.
           </div>
+        </Card>
+      </div>
+    )
+  }
+
+  if (isLoadingConfig) {
+    return (
+      <div className={`${commonStyles.pageContainer} animate-fade-in`}>
+        <div className={commonStyles.topToggle}>
+          <ThemeToggle />
+        </div>
+        <div className="flex flex-col items-center justify-center gap-4 py-12" style={{ height: '100vh' }}>
+          <Spinner size="huge" />
+          <Text className="text-neutral-500 font-medium">Loading session...</Text>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className={`${commonStyles.pageContainer} animate-fade-in`}>
+        <div className={commonStyles.topToggle}>
+          <ThemeToggle />
+        </div>
+        <Card className={`${styles.suspendedCard} shadow-lg`} style={{ marginTop: '20vh' }}>
+          <div className="flex justify-center mb-4 text-red-500">
+            <DismissCircle24Regular className="w-12 h-12" />
+          </div>
+          <Title1 className={styles.suspendedTitle} style={{ color: 'var(--colorPaletteRedForeground1)' }}>
+            Session Invalid
+          </Title1>
+          <Text className={styles.suspendedText}>
+            {error}
+          </Text>
         </Card>
       </div>
     )

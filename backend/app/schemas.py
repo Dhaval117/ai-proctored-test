@@ -50,6 +50,14 @@ class NextAction(str, Enum):
 # REQUEST BODIES
 # ─────────────────────────────────────────────
 
+class AdminLoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+
 class CreateSessionRequest(BaseModel):
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -57,6 +65,7 @@ class CreateSessionRequest(BaseModel):
             "email": "dhaval@example.com",
             "language": "Python",
             "experience_years": 3,
+            "expires_in_hours": 24
         }
     })
 
@@ -66,6 +75,13 @@ class CreateSessionRequest(BaseModel):
                           description="The technology/language the candidate is being assessed on")
     experience_years: int = Field(..., ge=0, le=40,
                                   description="Candidate's self-reported years of experience")
+    expires_in_hours: Optional[int] = Field(None, ge=1, description="Hours until exam link expires")
+    resume_text: Optional[str] = Field(None, description="Parsed text from resume for dynamic exam context")
+
+class ParseResumeResponse(BaseModel):
+    language: str
+    experience_years: int
+    projects_summary: str
 
 
 class VerifySessionRequest(BaseModel):
@@ -122,6 +138,7 @@ class SessionDetail(BaseModel):
     risk_score: int
     created_at: datetime
     completed_at: Optional[datetime] = None
+    total_questions: int
 
 
 class QuestionResponse(BaseModel):

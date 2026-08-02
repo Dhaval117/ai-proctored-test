@@ -9,14 +9,14 @@
  */
 
 import React, { useRef, useEffect, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Title1, Text, Button } from '@fluentui/react-components'
-import { ShieldCheckmark24Filled, ArrowLeft20Regular } from '@fluentui/react-icons'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Title1, Text, Button, Spinner, Card } from '@fluentui/react-components'
+import { ShieldCheckmark24Filled, ArrowLeft20Regular, DismissCircle24Regular } from '@fluentui/react-icons'
 
 import { useMediaCheck } from '../hooks/useMediaCheck'
 import { useNetworkCheck } from '../lib/useNetworkCheck'
 import { validateReferencePhoto, ensureFaceApiModelsLoaded } from '../lib/photoValidation'
-import { type CandidateFormData } from './SetupPage'
+import { api } from '../lib/api'
 
 import { CameraCheck } from '../components/system-check/CameraCheck'
 import { MicrophoneCheck } from '../components/system-check/MicrophoneCheck'
@@ -26,9 +26,9 @@ import { NetworkCheck } from '../components/system-check/NetworkCheck'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useSystemCheckStyles } from "./styles/SystemCheckPage.styles"
 import { useCommonStyles } from "./styles/common.styles"
+import { useExamStyles } from "./styles/ExamPage.styles"
 import {
   PHOTO_STORAGE_KEY,
-  SETUP_STORAGE_KEY,
   type SystemCheckStep as Step,
   SYSTEM_CHECK_STEPS as STEPS,
 } from '../utils/constants'
@@ -91,6 +91,7 @@ function StepProgress({ current }: { current: Step }) {
 
 export default function SystemCheckPage() {
   const styles = useSystemCheckStyles()
+  const examStyles = useExamStyles()
   const commonStyles = useCommonStyles()
   const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -113,10 +114,33 @@ export default function SystemCheckPage() {
   const [photoError, setPhotoError] = useState<string | null>(null)
   const [isValidatingPhoto, setIsValidatingPhoto] = useState(false)
 
+  const { id: sessionId } = useParams<{ id: string }>()
+  const [isValidatingSession, setIsValidatingSession] = useState(true)
+  const [sessionError, setSessionError] = useState<string | null>(null)
+
   useEffect(() => {
-    const saved = sessionStorage.getItem(SETUP_STORAGE_KEY)
-    if (!saved) navigate('/', { replace: true })
-  }, [navigate])
+    if (!sessionId) {
+      setSessionError('Invalid session link.')
+      setIsValidatingSession(false)
+      return
+    }
+
+    const checkSession = async () => {
+      try {
+        const res = await api.checkSessionValidity(sessionId)
+        if (res.status !== 'SETUP') {
+          // If the exam is active, completed, or suspended, route them to the exam page
+          navigate(`/exam/${sessionId}/take`, { replace: true })
+          return
+        }
+        setIsValidatingSession(false)
+      } catch (err: any) {
+        setSessionError(err.message || 'This exam link is invalid or has expired.')
+        setIsValidatingSession(false)
+      }
+    }
+    checkSession()
+  }, [sessionId])
 
   useEffect(() => {
     if (currentStep === 'photo') {
@@ -184,13 +208,11 @@ export default function SystemCheckPage() {
   }, [])
 
   const startNetworkCheck = useCallback(async () => {
-    const rawSetup = sessionStorage.getItem(SETUP_STORAGE_KEY)
     const photo = sessionStorage.getItem(PHOTO_STORAGE_KEY)
-    if (!rawSetup || !photo) return
+    if (!sessionId || !photo) return
 
-    const candidate = JSON.parse(rawSetup) as CandidateFormData
-    await networkCheck.runAll(candidate, photo)
-  }, [networkCheck])
+    await networkCheck.runAll(sessionId, photo)
+  }, [networkCheck, sessionId])
 
   useEffect(() => {
     if (currentStep === 'network' && networkCheck.latencyStatus === 'idle') {
@@ -199,30 +221,50 @@ export default function SystemCheckPage() {
   }, [currentStep, networkCheck.latencyStatus, startNetworkCheck])
 
   const handleStartExam = useCallback(() => {
-    if (!networkCheck.sessionId) return
+    if (!sessionId) return
     stopAll()
-    navigate(`/exam/${networkCheck.sessionId}`)
-  }, [navigate, networkCheck.sessionId, stopAll])
+    navigate(`/exam/${sessionId}/take`)
+  }, [navigate, sessionId, stopAll])
 
   return (
     <div className={`${commonStyles.pageContainer} animate-fade-in`}>
       <div className={commonStyles.topToggle}>
         <ThemeToggle />
       </div>
-      {/* Header */}
-      <div className={commonStyles.headerBox}>
-        <div className={commonStyles.logoRow}>
-          <div className={commonStyles.logoIconBox}>
-            <ShieldCheckmark24Filled className={commonStyles.logoIcon} />
-          </div>
-          <Title1 align="center">System Check</Title1>
-        </div>
-        <Text className={commonStyles.subtext}>
-          Verify your hardware and connection before starting the exam.
-        </Text>
-      </div>
 
-      <StepProgress current={currentStep} />
+      {isValidatingSession ? (
+        <div className="flex flex-col items-center justify-center gap-4 py-12">
+          <Spinner size="huge" />
+          <Text className="text-neutral-500 font-medium">Validating exam link...</Text>
+        </div>
+      ) : sessionError ? (
+        <Card className={`${examStyles.suspendedCard} shadow-lg`} style={{ marginTop: '20vh' }}>
+          <div className="flex justify-center mb-4 text-red-500">
+            <DismissCircle24Regular className="w-12 h-12" />
+          </div>
+          <Title1 className={examStyles.suspendedTitle} style={{ color: 'var(--colorPaletteRedForeground1)' }}>
+            Session Invalid
+          </Title1>
+          <Text className={examStyles.suspendedText}>
+            {sessionError}
+          </Text>
+        </Card>
+      ) : (
+        <>
+          {/* Header */}
+          <div className={commonStyles.headerBox}>
+            <div className={commonStyles.logoRow}>
+              <div className={commonStyles.logoIconBox}>
+                <ShieldCheckmark24Filled className={commonStyles.logoIcon} />
+              </div>
+              <Title1 align="center">System Check</Title1>
+            </div>
+            <Text className={commonStyles.subtext}>
+              Verify your hardware and connection before starting the exam.
+            </Text>
+          </div>
+
+          <StepProgress current={currentStep} />
 
       {currentStep === 'camera' && (
         <CameraCheck
@@ -272,8 +314,10 @@ export default function SystemCheckPage() {
           navigate('/')
         }}
       >
-        Back to candidate form
+        Exit Setup
       </Button>
+      </>
+      )}
     </div>
   )
 }

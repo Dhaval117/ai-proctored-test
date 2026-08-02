@@ -65,6 +65,25 @@ class Candidate(Base):
 
 
 # ─────────────────────────────────────────────
+# AdminUser
+# ─────────────────────────────────────────────
+class AdminUser(Base):
+    """
+    Platform administrator who can create candidates and exam sessions.
+    """
+    __tablename__ = "admin_users"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    def __repr__(self) -> str:
+        return f"<AdminUser id={self.id} email={self.email}>"
+
+
+
+# ─────────────────────────────────────────────
 # ExamSession
 # ─────────────────────────────────────────────
 class ExamSession(Base):
@@ -93,6 +112,8 @@ class ExamSession(Base):
     )
     violation_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     risk_score: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resume_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 

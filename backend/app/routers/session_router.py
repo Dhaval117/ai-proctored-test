@@ -67,44 +67,9 @@ def _orm_to_session_detail(session, candidate) -> SessionDetail:
 
 
 # ─────────────────────────────────────────────
-# POST /api/sessions/create
+# Removed Candidate Self-Registration (/create)
+# Registration is now admin-only via admin_router.py
 # ─────────────────────────────────────────────
-
-@router.post(
-    "/create",
-    response_model=CreateSessionResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Create a new exam session",
-)
-def create_session(body: CreateSessionRequest, db: DbSession):
-    """
-    Register a candidate (or reuse existing) and open a new exam session.
-
-    - If a candidate with the given email already exists, their record is reused.
-    - A new ExamSession is always created in SETUP status.
-    - Returns the session_id and candidate_id for subsequent calls.
-    """
-    # Get or create candidate
-    candidate = crud.get_or_create_candidate(db, name=body.name, email=body.email)
-
-    # Always create a fresh session (multiple attempts allowed)
-    session = crud.create_session(
-        db,
-        candidate_id=candidate.id,
-        language=body.language,
-        experience_years=body.experience_years,
-    )
-
-    db.commit()
-    db.refresh(session)
-    db.refresh(candidate)
-
-    return CreateSessionResponse(
-        session_id=uuid.UUID(session.id),
-        candidate_id=uuid.UUID(candidate.id),
-        status=ExamStatus(session.status),
-        message="Session created. Proceed to system verification.",
-    )
 
 
 # ─────────────────────────────────────────────

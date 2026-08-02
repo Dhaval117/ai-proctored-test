@@ -13,10 +13,23 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Candidate, ExamQA, ExamSession, ProctoringLog
+from app.models import Candidate, ExamQA, ExamSession, ProctoringLog, AdminUser
 from app.schemas import ExamStatus, SeverityLevel, ViolationType
 from app.config import MAX_VIOLATIONS, PROCTORING_ENABLED
 
+
+# ─────────────────────────────────────────────
+# AdminUser CRUD
+# ─────────────────────────────────────────────
+
+def get_admin_by_email(db: Session, email: str) -> Optional[AdminUser]:
+    return db.scalar(select(AdminUser).where(AdminUser.email == email))
+
+def create_admin(db: Session, email: str, hashed_password: str) -> AdminUser:
+    admin = AdminUser(email=email, hashed_password=hashed_password)
+    db.add(admin)
+    db.flush()
+    return admin
 
 # ─────────────────────────────────────────────
 # Candidate CRUD
@@ -56,6 +69,8 @@ def create_session(
     candidate_id: str,
     language: str,
     experience_years: int,
+    expires_at: Optional[datetime] = None,
+    resume_text: Optional[str] = None,
 ) -> ExamSession:
     """Create a new exam session in SETUP status."""
     session = ExamSession(
@@ -65,6 +80,8 @@ def create_session(
         status=ExamStatus.SETUP.value,
         violation_count=0,
         risk_score=0,
+        expires_at=expires_at,
+        resume_text=resume_text,
     )
     db.add(session)
     db.flush()
