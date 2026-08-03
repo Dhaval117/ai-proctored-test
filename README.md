@@ -94,6 +94,12 @@ Before getting started with local development without Docker, ensure you have th
      alembic upgrade head
      ```
 
+5. **Create an Admin User**:
+   To access the admin dashboard, you need to create an initial admin user account. You can use the provided script to do this:
+   ```bash
+   uv run python create_admin.py --email admin@example.com --password "your_secure_password"
+   ```
+
 ---
 
 ### Frontend Setup (React / TypeScript / Vite)
