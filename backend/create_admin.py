@@ -39,8 +39,8 @@ def main():
         # Check if the user already exists
         existing_admin = get_admin_by_email(db, args.email)
         if existing_admin:
-            logger.error(f"An admin with email '{args.email}' already exists.")
-            sys.exit(1)
+            logger.info(f"An admin with email '{args.email}' already exists. Skipping creation.")
+            sys.exit(0)
             
         # Hash password and create admin
         logger.info(f"Creating admin user '{args.email}'...")

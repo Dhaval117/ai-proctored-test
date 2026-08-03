@@ -67,11 +67,11 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
 
         setIsParsing(true);
         setError(null);
-        
+
         try {
             const formData = new FormData();
             formData.append('file', file);
-            
+
             const res = await api.parseResume(formData);
             setLanguage(res.language);
             setExperience(String(res.experience_years));
@@ -87,17 +87,23 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
         e.preventDefault();
         setLoading(true);
         setError(null);
-        
+
         try {
-            const res = await api.createAdminSession({
+            const payload: any = {
                 name,
                 email,
-                language,
-                experience_years: parseInt(experience, 10),
-                expires_in_hours: parseInt(expiresIn, 10),
-                resume_text: resumeText || null
-            });
-            
+                expires_in_hours: parseInt(expiresIn, 24)
+            };
+
+            if (selectedTab === 'manual') {
+                payload.language = language;
+                payload.experience_years = parseInt(experience, 10);
+            } else {
+                payload.resume_text = resumeText || null;
+            }
+
+            const res = await api.createAdminSession(payload);
+
             const link = `${window.location.origin}/exam/${res.session_id}`;
             setCreatedLink(link);
             onSuccess();
@@ -143,7 +149,7 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
                                         <Label required htmlFor="validityHours">Validity (Hours)</Label>
                                         <Input id="validityHours" type="number" min="1" required value={expiresIn} onChange={e => setExpiresIn(e.target.value)} />
                                     </div>
-                                    
+
                                     <TabList selectedValue={selectedTab} onTabSelect={(_, d) => setSelectedTab(d.value as string)} className="mt-4">
                                         <Tab value="manual">Manual Setup</Tab>
                                         <Tab value="resume">Resume Upload</Tab>
@@ -153,16 +159,16 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
                                         <div className="border border-neutral-200 p-4 rounded bg-neutral-50 flex flex-col gap-3">
                                             <Label>Upload PDF Resume</Label>
                                             <div className="flex items-center gap-4">
-                                                <input 
-                                                    type="file" 
-                                                    accept=".pdf" 
+                                                <input
+                                                    type="file"
+                                                    accept=".pdf"
                                                     ref={fileInputRef}
                                                     onChange={handleFileChange}
                                                     className="block w-full text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
                                                 />
                                                 {isParsing && <Spinner size="small" />}
                                             </div>
-                                            <Textarea 
+                                            <Textarea
                                                 placeholder="Parsed Project Summary (auto-filled)"
                                                 value={resumeText}
                                                 onChange={e => setResumeText(e.target.value)}
@@ -171,16 +177,18 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
                                         </div>
                                     )}
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex flex-col gap-1">
-                                            <Label required htmlFor="technologyLanguage">Technology / Language</Label>
-                                            <Input id="technologyLanguage" required value={language} onChange={e => setLanguage(e.target.value)} />
+                                    {selectedTab === 'manual' && (
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="flex flex-col gap-1">
+                                                <Label required htmlFor="technologyLanguage">Technology / Language</Label>
+                                                <Input id="technologyLanguage" required value={language} onChange={e => setLanguage(e.target.value)} />
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <Label required htmlFor="experienceYears">Years of Experience</Label>
+                                                <Input id="experienceYears" type="number" min="0" required value={experience} onChange={e => setExperience(e.target.value)} />
+                                            </div>
                                         </div>
-                                        <div className="flex flex-col gap-1">
-                                            <Label required htmlFor="experienceYears">Years of Experience</Label>
-                                            <Input id="experienceYears" type="number" min="0" required value={experience} onChange={e => setExperience(e.target.value)} />
-                                        </div>
-                                    </div>
+                                    )}
 
                                     {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
                                 </>

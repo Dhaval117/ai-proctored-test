@@ -71,9 +71,9 @@ class CreateSessionRequest(BaseModel):
 
     name: str = Field(..., min_length=2, max_length=255)
     email: EmailStr
-    language: str = Field(..., min_length=1, max_length=100,
+    language: str = Field("Resume Based", min_length=1, max_length=100,
                           description="The technology/language the candidate is being assessed on")
-    experience_years: int = Field(..., ge=0, le=40,
+    experience_years: int = Field(0, ge=0, le=40,
                                   description="Candidate's self-reported years of experience")
     expires_in_hours: Optional[int] = Field(None, ge=1, description="Hours until exam link expires")
     resume_text: Optional[str] = Field(None, description="Parsed text from resume for dynamic exam context")

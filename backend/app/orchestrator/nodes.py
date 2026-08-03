@@ -1,21 +1,7 @@
 import random
 from .state import InterviewState
 
-INTERVIEW_TOPICS = [
-    "Memory Management and Garbage Collection",
-    "Concurrency, Threading, and Async Programming",
-    "Data Structures and Algorithms",
-    "System Design and Architecture",
-    "Performance Optimization and Profiling",
-    "Security and Vulnerability Prevention",
-    "Error Handling and Fault Tolerance",
-    "Design Patterns and Best Practices",
-    "Database Interactions and ORMs",
-    "Testing, Mocking, and Debugging",
-    "Functional Programming Concepts",
-    "Object-Oriented Programming Principles",
-    "Network Protocols and I/O Operations"
-]
+
 from .llm import get_llm, ProcessAnswerResult
 from app.config import MAX_MAIN_QUESTIONS, MAX_FOLLOW_UPS_PER_QUESTION
 from .prompts import (
@@ -24,12 +10,34 @@ from .prompts import (
     get_generate_followup_prompt,
     get_generate_next_question_prompt
 )
+
+def get_difficulty(current_q_num: int, total_q: int) -> str:
+    if total_q < 5:
+        if total_q == 1:
+            return "Medium"
+        if total_q == 2:
+            return "Easy" if current_q_num == 1 else "Medium"
+        if total_q == 3:
+            return ["Easy", "Medium", "Hard"][current_q_num - 1]
+        if total_q == 4:
+            return ["Easy", "Easy", "Medium", "Hard"][current_q_num - 1]
+            
+    easy_count = round(total_q * 0.6)
+    medium_count = round(total_q * 0.2)
+    
+    if current_q_num <= easy_count:
+        return "Easy"
+    elif current_q_num <= easy_count + medium_count:
+        return "Medium"
+    else:
+        return "Hard"
+
 def init_question_node(state: InterviewState) -> dict:
     llm = get_llm()
     prompt = get_init_question_prompt(
         experience=state.get("experience", 0),
         language=state.get("language", "programming"),
-        random_topic=random.choice(INTERVIEW_TOPICS),
+        difficulty=get_difficulty(1, MAX_MAIN_QUESTIONS),
         resume_text=state.get("resume_text", "")
     )
     
@@ -112,11 +120,14 @@ def generate_next_question_node(state: InterviewState) -> dict:
     llm = get_llm()
     history_text = "\n".join([f"{m['role'].upper()}: {m['content']}" for m in state["messages"]])
     
+    current_q_num = state.get("question_count", 0) + 1
+    difficulty = get_difficulty(current_q_num, MAX_MAIN_QUESTIONS)
+    
     prompt = get_generate_next_question_prompt(
         experience=state.get("experience", 0),
         language=state.get("language", "programming"),
         history_text=history_text,
-        random_topic=random.choice(INTERVIEW_TOPICS),
+        difficulty=difficulty,
         resume_text=state.get("resume_text", "")
     )
     
