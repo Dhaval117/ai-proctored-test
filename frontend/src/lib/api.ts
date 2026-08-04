@@ -41,7 +41,7 @@ export interface SessionDetail {
   experience_years: number
   status: ExamStatus
   violation_count: number
-  risk_score: number
+  average_score?: number | null
   created_at: string
   completed_at?: string | null
   total_questions: number

@@ -177,7 +177,7 @@ class AdminSessionSummary(BaseModel):
     experience_years: int
     status: ExamStatus
     violation_count: int
-    risk_score: int
+    average_score: Optional[float] = None
     created_at: datetime
     completed_at: Optional[datetime] = None
 

@@ -95,12 +95,24 @@ export const useAdminStyles = makeStyles({
   },
   tableHeaderCellCandidate: {
     fontWeight: 700,
-    padding: '14px 20px',
+    padding: '14px 16px',
+    width: '25%',
+  },
+  tableHeaderCellLanguage: {
+    fontWeight: 700,
+    padding: '14px 16px',
+    width: '20%',
+  },
+  tableHeaderCellCompact: {
+    fontWeight: 700,
+    padding: '14px 16px',
+    width: '15%',
   },
   tableHeaderCellActions: {
     fontWeight: 700,
-    padding: '14px 20px',
+    padding: '14px 16px',
     textAlign: 'right',
+    width: '15%',
   },
   tableCellEmpty: {
     padding: '64px',
@@ -123,6 +135,10 @@ export const useAdminStyles = makeStyles({
     fontSize: '12px',
     fontFamily: 'var(--font-mono)',
     color: tokens.colorNeutralForeground3,
+    whiteSpace: 'nowrap',
+    overflowX: 'hidden',
+    textOverflow: 'ellipsis',
+    maxWidth: '100%',
   },
   tableCell: {
     padding: '16px',

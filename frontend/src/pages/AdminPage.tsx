@@ -242,11 +242,11 @@ export default function AdminPage() {
               <TableHeader className={styles.tableHeader}>
                 <TableRow>
                   <TableHeaderCell className={styles.tableHeaderCellCandidate}>Candidate</TableHeaderCell>
-                  <TableHeaderCell className={styles.tableHeaderCell}>Language / Exp</TableHeaderCell>
-                  <TableHeaderCell className={styles.tableHeaderCell}>Status</TableHeaderCell>
-                  <TableHeaderCell className={styles.tableHeaderCell}>Violations</TableHeaderCell>
-                  <TableHeaderCell className={styles.tableHeaderCell}>Risk Score</TableHeaderCell>
-                  <TableHeaderCell className={styles.tableHeaderCell}>Created At</TableHeaderCell>
+                  <TableHeaderCell className={styles.tableHeaderCellLanguage}>Language / Exp</TableHeaderCell>
+                  <TableHeaderCell className={styles.tableHeaderCellCompact}>Status</TableHeaderCell>
+                  <TableHeaderCell className={styles.tableHeaderCellCompact}>Violations</TableHeaderCell>
+                  <TableHeaderCell className={styles.tableHeaderCellCompact}>Created At</TableHeaderCell>
+                  <TableHeaderCell className={styles.tableHeaderCellCompact}>Average Score</TableHeaderCell>
                   <TableHeaderCell className={styles.tableHeaderCellActions}>Actions</TableHeaderCell>
                 </TableRow>
               </TableHeader>
@@ -298,8 +298,6 @@ export default function AdminPage() {
                         <span className={styles.violationsMax}> / 3</span>
                       </TableCell>
 
-                      <TableCell className={styles.tableCell}>{getRiskScoreBadge(s.risk_score)}</TableCell>
-
                       <TableCell className={styles.dateCell}>
                         {new Date(s.created_at).toLocaleString([], {
                           month: 'short',
@@ -307,6 +305,10 @@ export default function AdminPage() {
                           hour: '2-digit',
                           minute: '2-digit',
                         })}
+                      </TableCell>
+
+                      <TableCell className={styles.tableCell}>
+                        {s.average_score !== undefined && s.average_score !== null ? `${s.average_score}/10` : '-'}
                       </TableCell>
 
                       <TableCell>

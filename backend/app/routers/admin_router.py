@@ -14,7 +14,7 @@ import io
 from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from pypdf import PdfReader
 
 from app import crud
@@ -141,7 +141,7 @@ def list_admin_sessions(
     Story 5.1: Return paginated list of candidate exam sessions with risk summaries.
     Supports filtering by status, language, and name/email search.
     """
-    stmt = select(ExamSession).join(Candidate)
+    stmt = select(ExamSession).join(Candidate).options(selectinload(ExamSession.questions))
 
     if status_filter:
         stmt = stmt.where(ExamSession.status == status_filter.value)
@@ -171,7 +171,7 @@ def list_admin_sessions(
             experience_years=s.experience_years,
             status=ExamStatus(s.status),
             violation_count=s.violation_count,
-            risk_score=s.risk_score,
+            average_score=round(sum([q.evaluation_score for q in s.questions if q.evaluation_score is not None]) / len([q for q in s.questions if q.evaluation_score is not None]), 1) if [q for q in s.questions if q.evaluation_score is not None] else None,
             created_at=s.created_at,
             completed_at=s.completed_at,
         )
