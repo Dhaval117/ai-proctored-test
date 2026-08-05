@@ -79,6 +79,7 @@ Before getting started with local development without Docker, ensure you have th
    GEMINI_API_KEY="your_google_gemini_api_key_here"
    GEMINI_MODEL="gemini-3.1-flash-lite"
    DATABASE_URL="sqlite:///./dev.db" # Or postgresql://user:pass@host:5432/dbname
+   JWT_SECRET_KEY="super_secret_key_that_is_at_least_32_bytes_long_for_hs256"
    ```
 
 4. **Database Migrations**:

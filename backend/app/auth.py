@@ -10,7 +10,9 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import AdminUser
 
-SECRET_KEY = "super_secret_key"
+import os
+
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "super_secret_key_that_is_at_least_32_bytes_long_for_hs256")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 
