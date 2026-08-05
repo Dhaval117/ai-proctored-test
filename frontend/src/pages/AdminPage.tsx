@@ -283,9 +283,11 @@ export default function AdminPage() {
                       <TableCell className={styles.tableCell}>
                         <div>
                           <Text className={styles.languageText}>{s.language}</Text>
-                          <Text className={styles.expText}>
-                            {s.experience_years} yrs exp
-                          </Text>
+                          {s.language !== "Resume Based" && (
+                            <Text className={styles.expText}>
+                              {s.experience_years} yrs exp
+                            </Text>
+                          )}
                         </div>
                       </TableCell>
 
