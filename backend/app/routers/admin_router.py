@@ -76,24 +76,12 @@ def parse_resume(file: UploadFile = File(...), current_admin: AdminUser = Depend
     if not text.strip():
         raise HTTPException(status_code=400, detail="No text could be extracted from the PDF.")
 
-    llm = get_llm()
-    structured_llm = llm.with_structured_output(ParseResumeResponse)
-    
-    prompt = f"""
-    You are an expert technical recruiter. Analyze the following resume text and extract the candidate's primary programming language/technology, their total years of experience, and a concise summary of their key projects and the specific technologies used in those projects.
-    
-    Resume Text:
-    {text}
-    """
-    try:
-        result = structured_llm.invoke(prompt)
-        return result
-    except Exception as e:
-        return ParseResumeResponse(
-            language="Unknown",
-            experience_years=0,
-            projects_summary=text[:1000]
-        )
+    # Skip LLM summarization to return the complete raw PDF text
+    return ParseResumeResponse(
+        language="Resume Based",
+        experience_years=0,
+        projects_summary=text
+    )
 
 @router.post("/sessions", response_model=CreateSessionResponse)
 def create_admin_session(

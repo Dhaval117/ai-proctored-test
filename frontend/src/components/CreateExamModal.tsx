@@ -15,7 +15,7 @@ import {
     Tab,
     Textarea
 } from '@fluentui/react-components';
-import { Add20Regular, DocumentArrowUp20Regular } from '@fluentui/react-icons';
+import { Add20Regular, DocumentArrowUp20Regular, CheckmarkCircle20Filled } from '@fluentui/react-icons';
 import { api } from '../lib/api';
 
 interface CreateExamModalProps {
@@ -168,12 +168,11 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
                                                 />
                                                 {isParsing && <Spinner size="small" />}
                                             </div>
-                                            <Textarea
-                                                placeholder="Parsed Project Summary (auto-filled)"
-                                                value={resumeText}
-                                                onChange={e => setResumeText(e.target.value)}
-                                                rows={4}
-                                            />
+                                                {resumeText && !isParsing && !error && (
+                                                    <div className="text-green-600 text-sm font-medium flex items-center gap-2 mt-2">
+                                                        <CheckmarkCircle20Filled /> PDF parsed successfully.
+                                                    </div>
+                                                )}
                                         </div>
                                     )}
 
