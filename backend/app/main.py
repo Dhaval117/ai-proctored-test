@@ -4,7 +4,7 @@ FastAPI application entrypoint for the AI Proctored Verbal Examination System.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import proctor_router, session_router, exam_router, admin_router
+from app.routers import proctor_router, session_router, exam_router, admin_router, speech_router
 
 app = FastAPI(
     title="AI Proctored Verbal Examination API",
@@ -33,7 +33,7 @@ app.include_router(session_router.router)
 app.include_router(admin_router.router)
 app.include_router(proctor_router.router)
 app.include_router(exam_router.router)
-
+app.include_router(speech_router.router)
 
 @app.get("/health", tags=["meta"])
 def health_check():
