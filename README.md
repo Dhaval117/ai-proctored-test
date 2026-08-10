@@ -33,6 +33,7 @@ Before getting started with local development without Docker, ensure you have th
 - **Docker & Docker Compose**: (Optional, required only if running containerized deployment via `docker-compose.yml`)
 - **Node.js**: `v20.0.0` or higher (LTS v24 recommended)
 - **npm**: `v9.0.0` or higher (bundled with Node.js)
+- **FFmpeg**: Required for audio processing (Whisper). Must be installed and accessible in your system's PATH.
 - **API Key**: A valid [Google Gemini API Key](https://aistudio.google.com/app/apikey) (`GEMINI_API_KEY`)
 
 ---
@@ -80,6 +81,7 @@ Before getting started with local development without Docker, ensure you have th
    GEMINI_MODEL="gemini-3.1-flash-lite"
    DATABASE_URL="sqlite:///./dev.db" # Or postgresql://user:pass@host:5432/dbname
    JWT_SECRET_KEY="super_secret_key_that_is_at_least_32_bytes_long_for_hs256"
+   LIVE_TRANSCRIPTION_ENABLED=true
    ```
 
 4. **Database Migrations**:
