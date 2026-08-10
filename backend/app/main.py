@@ -4,7 +4,22 @@ FastAPI application entrypoint for the AI Proctored Verbal Examination System.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import proctor_router, session_router, exam_router, admin_router
+from app.routers import proctor_router, session_router, exam_router, admin_router, speech_router
+
+from contextlib import asynccontextmanager
+import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Preload the Whisper and VAD models in a background thread on server startup
+    # so they are instantly ready when the user clicks 'Start Recording'.
+    from app.speech_service import get_speech_service
+    logger.info("Pre-loading speech models in background...")
+    asyncio.create_task(asyncio.to_thread(get_speech_service))
+    yield
 
 app = FastAPI(
     title="AI Proctored Verbal Examination API",
@@ -17,6 +32,7 @@ app = FastAPI(
     docs_url="/docs",         # Swagger UI
     redoc_url="/redoc",       # ReDoc
     openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
 
 # Allow local frontend dev server
@@ -33,7 +49,7 @@ app.include_router(session_router.router)
 app.include_router(admin_router.router)
 app.include_router(proctor_router.router)
 app.include_router(exam_router.router)
-
+app.include_router(speech_router.router)
 
 @app.get("/health", tags=["meta"])
 def health_check():

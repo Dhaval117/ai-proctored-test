@@ -22,3 +22,7 @@ PROCTORING_ENABLED: bool = os.getenv("PROCTORING_ENABLED", "true").lower() == "t
 # ALLOW_PROCTORING_TOGGLE controls whether the UI shows the button allowing pause/resume during development.
 # In production deployments, this should remain False so candidates cannot disable proctoring.
 ALLOW_PROCTORING_TOGGLE: bool = os.getenv("ALLOW_PROCTORING_TOGGLE", "false").lower() == "true"
+
+# LIVE_TRANSCRIPTION_ENABLED controls whether interim/live transcripts are computed and sent to the UI
+# while the user is speaking. If False, only finalized VAD silence transcripts are shown.
+LIVE_TRANSCRIPTION_ENABLED: bool = os.getenv("LIVE_TRANSCRIPTION_ENABLED", "false").lower() == "true"
