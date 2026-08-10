@@ -139,9 +139,7 @@ export default function AdminPage() {
 
   return (
     <div className={`${commonStyles.pageContainer} animate-fade-in`}>
-      <div className={commonStyles.topToggle}>
-        <ThemeToggle />
-      </div>
+
 
       <div className={styles.mainWrapper}>
         {/* Header */}
@@ -170,6 +168,7 @@ export default function AdminPage() {
             >
               Refresh Data
             </Button>
+            <ThemeToggle />
           </div>
         </div>
 

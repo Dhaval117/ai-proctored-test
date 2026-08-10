@@ -9,7 +9,7 @@ export default function AdminLoginPage() {
     const commonStyles = useCommonStyles();
     const { login } = useAuth();
     const navigate = useNavigate();
-    
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -48,11 +48,11 @@ export default function AdminLoginPage() {
     return (
         <div className={`${commonStyles.pageContainer} flex items-center justify-center animate-fade-in`}>
             <Card className="w-full max-w-md p-8 flex flex-col gap-6 shadow-xl">
-                <div className="text-center">
-                    <Title1>Admin Login</Title1>
+                <Title1>Admin Login</Title1>
+                <div>
                     <Text className="block mt-2 text-neutral-500">Sign in to manage candidates and exams</Text>
                 </div>
-                
+
                 <form onSubmit={handleLogin} className="flex flex-col gap-4">
                     <div>
                         <Input
@@ -78,7 +78,7 @@ export default function AdminLoginPage() {
                             className={commonStyles.wFull}
                         />
                     </div>
-                    
+
                     {error && (
                         <Text className="text-red-500 text-sm font-medium">{error}</Text>
                     )}

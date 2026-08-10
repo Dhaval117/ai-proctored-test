@@ -3,6 +3,7 @@ import numpy as np
 import logging
 import asyncio
 from app.speech_service import get_speech_service
+from app.config import LIVE_TRANSCRIPTION_ENABLED
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +56,7 @@ async def websocket_speech_endpoint(websocket: WebSocket):
                 
                 audio_buffer = bytearray()
                 last_interim_samples = 0
-            else:
+            elif LIVE_TRANSCRIPTION_ENABLED:
                 # Send interim updates every 1 second (16000 samples)
                 if total_samples - last_interim_samples >= 16000:
                     if not transcription_lock.locked():
