@@ -64,7 +64,9 @@ def _orm_to_session_detail(session, candidate) -> SessionDetail:
         risk_score=session.risk_score,
         created_at=session.created_at,
         completed_at=session.completed_at,
-        total_questions=MAX_MAIN_QUESTIONS
+        total_questions=session.num_questions,
+        num_questions=session.num_questions,
+        follow_ups_per_question=session.follow_ups_per_question,
     )
 
 
@@ -108,6 +110,7 @@ def verify_session(session_id: uuid.UUID, body: VerifySessionRequest, db: DbSess
         session_id=uuid.UUID(session.id),
         status=ExamStatus(session.status),
         message="Identity verified. Exam is ready to begin.",
+        exam_token=session.exam_token,
     )
 
 

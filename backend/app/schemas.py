@@ -22,6 +22,7 @@ class ExamStatus(str, Enum):
     ACTIVE = "ACTIVE"
     COMPLETED = "COMPLETED"
     SUSPENDED = "SUSPENDED"
+    EXPIRED = "EXPIRED"
 
 
 class ViolationType(str, Enum):
@@ -77,6 +78,8 @@ class CreateSessionRequest(BaseModel):
                                   description="Candidate's self-reported years of experience")
     expires_in_hours: Optional[int] = Field(None, ge=1, description="Hours until exam link expires")
     resume_text: Optional[str] = Field(None, description="Parsed text from resume for dynamic exam context")
+    num_questions: int = Field(5, ge=1, le=20, description="Number of questions for the exam")
+    follow_ups_per_question: int = Field(1, ge=0, le=5, description="Number of follow-up questions per main question")
 
 class ParseResumeResponse(BaseModel):
     language: str
@@ -125,6 +128,7 @@ class VerifySessionResponse(BaseModel):
     session_id: uuid.UUID
     status: ExamStatus
     message: str
+    exam_token: Optional[str] = None
 
 
 class SessionDetail(BaseModel):
@@ -139,6 +143,8 @@ class SessionDetail(BaseModel):
     created_at: datetime
     completed_at: Optional[datetime] = None
     total_questions: int
+    num_questions: int
+    follow_ups_per_question: int
 
 
 class QuestionResponse(BaseModel):
@@ -180,6 +186,7 @@ class AdminSessionSummary(BaseModel):
     average_score: Optional[float] = None
     created_at: datetime
     completed_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
 
 
 class AdminSessionListResponse(BaseModel):

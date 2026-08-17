@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Optional
+import uuid
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -71,6 +72,8 @@ def create_session(
     experience_years: int,
     expires_at: Optional[datetime] = None,
     resume_text: Optional[str] = None,
+    num_questions: int = 5,
+    follow_ups_per_question: int = 1,
 ) -> ExamSession:
     """Create a new exam session in SETUP status."""
     session = ExamSession(
@@ -82,6 +85,8 @@ def create_session(
         risk_score=0,
         expires_at=expires_at,
         resume_text=resume_text,
+        num_questions=num_questions,
+        follow_ups_per_question=follow_ups_per_question,
     )
     db.add(session)
     db.flush()
@@ -104,6 +109,7 @@ def activate_session(db: Session, session: ExamSession, reference_photo: str) ->
         )
     session.reference_photo = reference_photo
     session.status = ExamStatus.ACTIVE.value
+    session.exam_token = str(uuid.uuid4())
     db.flush()
     return session
 

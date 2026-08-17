@@ -6,7 +6,8 @@ from app.config import MAX_MAIN_QUESTIONS
 
 def route_after_process(state: InterviewState) -> str:
     if state.get("current_topic") == "next_question_requested":
-        if state.get("question_count", 0) >= MAX_MAIN_QUESTIONS:
+        max_questions = state.get("num_questions", MAX_MAIN_QUESTIONS)
+        if state.get("question_count", 0) >= max_questions:
             return "end"
         return "next_question"
     return "followup"

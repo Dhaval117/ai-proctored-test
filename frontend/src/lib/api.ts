@@ -7,13 +7,15 @@
 // Types (mirroring backend schemas)
 // ─────────────────────────────────────────────
 
-export type ExamStatus = 'SETUP' | 'ACTIVE' | 'COMPLETED' | 'SUSPENDED'
+export type ExamStatus = 'SETUP' | 'ACTIVE' | 'COMPLETED' | 'SUSPENDED' | 'EXPIRED'
 
 export interface CreateSessionRequest {
   name: string
   email: string
   language: string
   experience_years: number
+  num_questions?: number
+  follow_ups_per_question?: number
 }
 
 export interface CreateSessionResponse {
@@ -31,6 +33,7 @@ export interface VerifySessionResponse {
   session_id: string
   status: ExamStatus
   message: string
+  exam_token?: string
 }
 
 export interface SessionDetail {
@@ -45,6 +48,8 @@ export interface SessionDetail {
   created_at: string
   completed_at?: string | null
   total_questions: number
+  num_questions: number
+  follow_ups_per_question: number
 }
 
 export type NextAction = 'FOLLOW_UP' | 'NEXT_QUESTION' | 'EXAM_COMPLETE'
@@ -139,6 +144,10 @@ class ApiError extends Error {
   }
 }
 
+let currentExamToken: string | null = null
+export const setExamToken = (token: string | null) => { currentExamToken = token }
+export const getExamToken = () => currentExamToken
+
 async function request<T>(
   method: string,
   path: string,
@@ -153,6 +162,10 @@ async function request<T>(
   const token = localStorage.getItem('admin_token')
   if (token && path.startsWith('/api/admin')) {
     headers['Authorization'] = `Bearer ${token}`
+  }
+  
+  if (currentExamToken) {
+    headers['X-Exam-Token'] = currentExamToken
   }
 
   const res = await fetch(path, {
@@ -192,6 +205,7 @@ export interface AdminSessionSummary {
   risk_score: number
   created_at: string
   completed_at?: string
+  expires_at?: string
 }
 
 export interface AdminSessionListResponse {

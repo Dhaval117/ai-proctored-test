@@ -86,8 +86,16 @@ export default function AdminPage() {
 
   const totalPages = Math.max(1, Math.ceil(totalCount / ADMIN_PAGE_SIZE))
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = (s: AdminSessionSummary) => {
+    let displayStatus = s.status
+
+    if (displayStatus !== 'EXPIRED' && displayStatus !== 'COMPLETED' && s.expires_at) {
+      if (new Date(s.expires_at) < new Date()) {
+        displayStatus = 'EXPIRED'
+      }
+    }
+
+    switch (displayStatus) {
       case 'COMPLETED':
         return (
           <Badge appearance="filled" color="success" icon={<CheckmarkCircle20Filled />}>
@@ -100,6 +108,12 @@ export default function AdminPage() {
             Suspended
           </Badge>
         )
+      case 'EXPIRED':
+        return (
+          <Badge appearance="filled" color="severe" icon={<Warning20Filled />}>
+            Expired
+          </Badge>
+        )
       case 'ACTIVE':
         return (
           <Badge appearance="tint" color="brand">
@@ -108,7 +122,7 @@ export default function AdminPage() {
         )
       default:
         return (
-          <Badge appearance="outline" color="subtle">
+          <Badge appearance="tint" color="informative">
             Setup
           </Badge>
         )
@@ -290,7 +304,7 @@ export default function AdminPage() {
                         </div>
                       </TableCell>
 
-                      <TableCell className={styles.tableCell}>{getStatusBadge(s.status)}</TableCell>
+                      <TableCell className={styles.tableCell}>{getStatusBadge(s)}</TableCell>
 
                       <TableCell className={styles.violationsCell}>
                         <span className={s.violation_count > 0 ? styles.violationsHighlight : styles.violationsNormal}>

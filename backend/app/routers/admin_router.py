@@ -101,7 +101,9 @@ def create_admin_session(
         language=request.language,
         experience_years=request.experience_years,
         expires_at=expires_at,
-        resume_text=request.resume_text
+        resume_text=request.resume_text,
+        num_questions=request.num_questions,
+        follow_ups_per_question=request.follow_ups_per_question
     )
     db.commit()
     db.refresh(session)
@@ -162,6 +164,7 @@ def list_admin_sessions(
             average_score=round(sum([q.evaluation_score for q in s.questions if q.evaluation_score is not None]) / len([q for q in s.questions if q.evaluation_score is not None]), 1) if [q for q in s.questions if q.evaluation_score is not None] else None,
             created_at=s.created_at,
             completed_at=s.completed_at,
+            expires_at=s.expires_at,
         )
         for s in sessions_page
     ]
@@ -202,7 +205,9 @@ def get_admin_session_detail(
         risk_score=session.risk_score,
         created_at=session.created_at,
         completed_at=session.completed_at,
-        total_questions=MAX_MAIN_QUESTIONS,
+        total_questions=session.num_questions,
+        num_questions=session.num_questions,
+        follow_ups_per_question=session.follow_ups_per_question,
     )
 
     qa_rows = crud.get_session_qa(db, str(session_id))

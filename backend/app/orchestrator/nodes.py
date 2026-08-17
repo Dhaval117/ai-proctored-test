@@ -3,7 +3,6 @@ from .state import InterviewState
 
 
 from .llm import get_llm, ProcessAnswerResult
-from app.config import MAX_MAIN_QUESTIONS, MAX_FOLLOW_UPS_PER_QUESTION
 from .prompts import (
     get_init_question_prompt,
     get_process_answer_prompt,
@@ -34,10 +33,11 @@ def get_difficulty(current_q_num: int, total_q: int) -> str:
 
 def init_question_node(state: InterviewState) -> dict:
     llm = get_llm()
+    max_main_questions = state.get("num_questions", 5)
     prompt = get_init_question_prompt(
         experience=state.get("experience", 0),
         language=state.get("language", "programming"),
-        difficulty=get_difficulty(1, MAX_MAIN_QUESTIONS),
+        difficulty=get_difficulty(1, max_main_questions),
         resume_text=state.get("resume_text", "")
     )
     
@@ -68,11 +68,14 @@ def process_answer_node(state: InterviewState) -> dict:
     latest_ai_q = ai_msgs[-1]["content"] if ai_msgs else ""
     latest_user_a = user_msgs[-1]["content"] if user_msgs else ""
     
+    max_main_questions = state.get("num_questions", 5)
+    max_follow_ups = state.get("follow_ups_per_question", 1)
+    
     prompt = get_process_answer_prompt(
         current_q_num=current_q_num,
-        max_main_questions=MAX_MAIN_QUESTIONS,
+        max_main_questions=max_main_questions,
         followup_cnt=followup_cnt,
-        max_follow_ups=MAX_FOLLOW_UPS_PER_QUESTION,
+        max_follow_ups=max_follow_ups,
         latest_ai_q=latest_ai_q,
         latest_user_a=latest_user_a,
         history_text=history_text
@@ -85,7 +88,7 @@ def process_answer_node(state: InterviewState) -> dict:
     except (ValueError, TypeError):
         score = 8
     
-    if result.action == "followup" and state.get("followup_count", 0) < MAX_FOLLOW_UPS_PER_QUESTION:
+    if result.action == "followup" and state.get("followup_count", 0) < max_follow_ups:
         return {"current_topic": result.feedback, "last_score": score, "last_feedback": result.feedback}
     else:
         return {"current_topic": "next_question_requested", "last_score": score, "last_feedback": result.feedback}
@@ -96,11 +99,13 @@ def generate_followup_node(state: InterviewState) -> dict:
     current_q_num = state.get("question_count", 1)
     followup_cnt = state.get("followup_count", 0)
     
+    max_follow_ups = state.get("follow_ups_per_question", 1)
+    
     prompt = get_generate_followup_prompt(
         current_q_num=current_q_num,
         history_text=history_text,
         followup_cnt=followup_cnt,
-        max_follow_ups=MAX_FOLLOW_UPS_PER_QUESTION,
+        max_follow_ups=max_follow_ups,
         current_topic=state.get("current_topic", "")
     )
 
@@ -121,7 +126,8 @@ def generate_next_question_node(state: InterviewState) -> dict:
     history_text = "\n".join([f"{m['role'].upper()}: {m['content']}" for m in state["messages"]])
     
     current_q_num = state.get("question_count", 0) + 1
-    difficulty = get_difficulty(current_q_num, MAX_MAIN_QUESTIONS)
+    max_main_questions = state.get("num_questions", 5)
+    difficulty = get_difficulty(current_q_num, max_main_questions)
     
     prompt = get_generate_next_question_prompt(
         experience=state.get("experience", 0),

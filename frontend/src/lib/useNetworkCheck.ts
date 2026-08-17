@@ -11,7 +11,7 @@
  */
 
 import { useState, useCallback } from 'react'
-import { api } from './api'
+import { api, setExamToken } from './api'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -128,7 +128,10 @@ export function useNetworkCheck(): NetworkCheckState & NetworkCheckActions {
 
     setVerifyStatus('running')
     try {
-      await api.verifySession(sessionId, { reference_photo: referencePhoto })
+      const res = await api.verifySession(sessionId, { reference_photo: referencePhoto })
+      if (res.exam_token) {
+        setExamToken(res.exam_token)
+      }
       setVerifyStatus('success')
       setAllDone(true)
     } catch (err) {

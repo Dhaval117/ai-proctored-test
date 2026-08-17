@@ -36,6 +36,8 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
     const [experience, setExperience] = useState('');
     const [expiresIn, setExpiresIn] = useState('24');
     const [resumeText, setResumeText] = useState('');
+    const [numQuestions, setNumQuestions] = useState('5');
+    const [followUpsPerQuestion, setFollowUpsPerQuestion] = useState('1');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isParsing, setIsParsing] = useState(false);
@@ -47,6 +49,8 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
         setExperience('');
         setExpiresIn('24');
         setResumeText('');
+        setNumQuestions('5');
+        setFollowUpsPerQuestion('1');
         setError(null);
         setCreatedLink(null);
         if (fileInputRef.current) {
@@ -92,7 +96,9 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
             const payload: any = {
                 name,
                 email,
-                expires_in_hours: parseInt(expiresIn, 24)
+                expires_in_hours: parseInt(expiresIn, 10),
+                num_questions: parseInt(numQuestions, 10),
+                follow_ups_per_question: parseInt(followUpsPerQuestion, 10)
             };
 
             if (selectedTab === 'manual') {
@@ -148,6 +154,16 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
                                     <div className="flex flex-col gap-1">
                                         <Label required htmlFor="validityHours">Validity (Hours)</Label>
                                         <Input id="validityHours" type="number" min="1" required value={expiresIn} onChange={e => setExpiresIn(e.target.value)} />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 mt-2">
+                                        <div className="flex flex-col gap-1">
+                                            <Label required htmlFor="numQuestions">Number of Questions</Label>
+                                            <Input id="numQuestions" type="number" min="1" max="20" required value={numQuestions} onChange={e => setNumQuestions(e.target.value)} />
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <Label required htmlFor="followUps">Follow-ups per Question</Label>
+                                            <Input id="followUps" type="number" min="0" max="5" required value={followUpsPerQuestion} onChange={e => setFollowUpsPerQuestion(e.target.value)} />
+                                        </div>
                                     </div>
 
                                     <TabList selectedValue={selectedTab} onTabSelect={(_, d) => setSelectedTab(d.value as string)} className="mt-4">

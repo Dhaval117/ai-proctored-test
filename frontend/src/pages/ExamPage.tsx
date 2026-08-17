@@ -29,6 +29,7 @@ import { ThemeToggle } from '../components/ThemeToggle'
 import { ProctoringWarningDialog } from '../components/ProctoringWarningDialog'
 import { useExamStyles } from "./styles/ExamPage.styles"
 import { useCommonStyles } from "./styles/common.styles"
+import { getExamToken } from '../lib/api'
 
 export default function ExamPage() {
   const styles = useExamStyles()
@@ -54,6 +55,8 @@ export default function ExamPage() {
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const { isModelsLoaded, hasRefDescriptor } = useFaceDetection(videoRef, handleViolation)
+
+  const examToken = getExamToken()
 
   useEffect(() => {
     let stream: MediaStream | null = null
@@ -87,7 +90,33 @@ export default function ExamPage() {
     return () => document.removeEventListener('keydown', handleGlobalKeyDown, { capture: true })
   }, [showWarningModal])
 
-  if (status === 'SUSPENDED') {
+  if (!examToken) {
+    return (
+      <div className={`${commonStyles.pageContainer} animate-fade-in`}>
+        <div className={commonStyles.topToggle}>
+          <ThemeToggle />
+        </div>
+        <Card className={`${styles.suspendedCard} shadow-lg`} style={{ marginTop: '20vh' }}>
+          <div className="flex justify-center mb-4 text-red-500">
+            <DismissCircle24Regular className="w-12 h-12" />
+          </div>
+          <Title1 className={styles.suspendedTitle} style={{ color: 'var(--colorPaletteRedForeground1)' }}>
+            Session Expired
+          </Title1>
+          <Text className={styles.suspendedText}>
+            This exam link has expired or has already been used. Please request a new link.
+          </Text>
+        </Card>
+      </div>
+    )
+  }
+
+  if (status === 'SUSPENDED' || status === 'EXPIRED') {
+    const isExpired = status === 'EXPIRED'
+    const title = isExpired ? 'Exam Expired' : 'Exam Suspended'
+    const message = isExpired 
+      ? 'Your exam session has expired because the allotted time has passed.'
+      : `Your exam session has been locked due to repeated proctoring violations (exceeded ${maxViolations} warnings).`
     return (
       <div className={`${commonStyles.pageContainer} animate-fade-in`}>
         <div className={commonStyles.topToggle}>
@@ -99,10 +128,10 @@ export default function ExamPage() {
             <LockClosed24Filled className={styles.iconMd} />
           </div>
           <Title1 className={styles.suspendedTitle}>
-            Exam Suspended
+            {title}
           </Title1>
           <Text className={styles.suspendedText}>
-            Your exam session has been locked due to repeated proctoring violations (exceeded {maxViolations} warnings).
+            {message}
           </Text>
           <div className={styles.suspendedNotice}>
             This incident has been logged. Please contact your administrator for further instructions.
