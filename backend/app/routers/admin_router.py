@@ -20,7 +20,7 @@ from pypdf import PdfReader
 from app import crud
 from app.database import get_db
 from app.models import ExamSession, Candidate, AdminUser
-from app.auth import get_current_admin, verify_password, create_access_token
+from app.auth import get_current_admin, verify_password, create_access_token, get_current_superadmin, get_password_hash
 from app.config import MAX_MAIN_QUESTIONS
 from app.orchestrator.llm import get_llm
 from app.schemas import (
@@ -36,7 +36,11 @@ from app.schemas import (
     TokenResponse,
     CreateSessionRequest,
     CreateSessionResponse,
-    ParseResumeResponse
+    ParseResumeResponse,
+    AdminUserResponse,
+    AdminUserListResponse,
+    AdminCreateRequest,
+    ChangePasswordRequest
 )
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -57,7 +61,81 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 @router.get("/me")
 def read_users_me(current_admin: AdminUser = Depends(get_current_admin)):
-    return {"id": current_admin.id, "email": current_admin.email}
+    return {"id": current_admin.id, "email": current_admin.email, "is_superadmin": current_admin.is_superadmin}
+
+@router.put("/me/password")
+def update_my_password(
+    request: ChangePasswordRequest,
+    db: DbSession,
+    current_admin: AdminUser = Depends(get_current_admin)
+):
+    if not verify_password(request.current_password, current_admin.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect current password"
+        )
+    crud.update_admin_password(db, current_admin, get_password_hash(request.new_password))
+    db.commit()
+    return {"message": "Password updated successfully"}
+
+@router.get("/managers", response_model=AdminUserListResponse)
+def list_managers(
+    db: DbSession,
+    current_superadmin: AdminUser = Depends(get_current_superadmin)
+):
+    admins = crud.get_all_admins(db)
+    return AdminUserListResponse(
+        admins=[
+            AdminUserResponse(
+                id=uuid.UUID(admin.id),
+                email=admin.email,
+                is_superadmin=admin.is_superadmin,
+                created_at=admin.created_at
+            ) for admin in admins
+        ]
+    )
+
+@router.post("/managers", response_model=AdminUserResponse)
+def create_manager(
+    request: AdminCreateRequest,
+    db: DbSession,
+    current_superadmin: AdminUser = Depends(get_current_superadmin)
+):
+    existing = crud.get_admin_by_email(db, request.email)
+    if existing:
+        raise HTTPException(status_code=400, detail="Admin with this email already exists")
+    
+    new_admin = crud.create_admin(
+        db,
+        email=request.email,
+        hashed_password=get_password_hash(request.password),
+        is_superadmin=request.is_superadmin
+    )
+    db.commit()
+    db.refresh(new_admin)
+    return AdminUserResponse(
+        id=uuid.UUID(new_admin.id),
+        email=new_admin.email,
+        is_superadmin=new_admin.is_superadmin,
+        created_at=new_admin.created_at
+    )
+
+@router.delete("/managers/{admin_id}")
+def delete_manager(
+    admin_id: str,
+    db: DbSession,
+    current_superadmin: AdminUser = Depends(get_current_superadmin)
+):
+    target_admin = db.get(AdminUser, admin_id)
+    if not target_admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    
+    if target_admin.is_superadmin:
+        raise HTTPException(status_code=400, detail="Cannot delete a superadmin")
+        
+    crud.delete_admin(db, admin_id)
+    db.commit()
+    return {"message": "Admin deleted successfully"}
 
 @router.post("/parse-resume", response_model=ParseResumeResponse)
 def parse_resume(file: UploadFile = File(...), current_admin: AdminUser = Depends(get_current_admin)):

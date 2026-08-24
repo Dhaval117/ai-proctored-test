@@ -12,10 +12,9 @@ import {
     Label,
     Spinner,
     TabList,
-    Tab,
-    Textarea
+    Tab
 } from '@fluentui/react-components';
-import { Add20Regular, DocumentArrowUp20Regular, CheckmarkCircle20Filled } from '@fluentui/react-icons';
+import { Add20Regular, CheckmarkCircle20Filled, Dismiss24Regular } from '@fluentui/react-icons';
 import { api } from '../lib/api';
 
 interface CreateExamModalProps {
@@ -121,22 +120,31 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange} modalType="alert">
             <DialogTrigger disableButtonEnhancement>
                 <Button appearance="primary" icon={<Add20Regular />}>Create Exam</Button>
             </DialogTrigger>
             <DialogSurface className="max-w-xl">
                 <form onSubmit={handleSubmit}>
                     <DialogBody>
-                        <DialogTitle>Create New Exam</DialogTitle>
+                        <DialogTitle
+                            action={
+                                <DialogTrigger action="close">
+                                    <Button appearance="subtle" aria-label="close" icon={<Dismiss24Regular />} />
+                                </DialogTrigger>
+                            }
+                        >
+                            {createdLink ? 'Exam Created Successfully' : 'Create New Exam'}
+                        </DialogTitle>
                         <DialogContent className="flex flex-col gap-4 py-4">
                             {createdLink ? (
-                                <div className="bg-green-50 p-4 rounded border border-green-200">
-                                    <h4 className="text-green-800 font-semibold mb-2">Exam Created Successfully!</h4>
-                                    <p className="text-sm mb-2 text-green-900">Send this link to the candidate:</p>
-                                    <div className="flex gap-2">
-                                        <Input readOnly value={createdLink} className="flex-1" />
-                                        <Button onClick={() => navigator.clipboard.writeText(createdLink)}>Copy</Button>
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex flex-col gap-1">
+                                        <Label htmlFor="examLink">Send this link to the candidate:</Label>
+                                        <div className="flex gap-2">
+                                            <Input id="examLink" readOnly value={createdLink} className="flex-1" />
+                                            <Button onClick={() => navigator.clipboard.writeText(createdLink)}>Copy</Button>
+                                        </div>
                                     </div>
                                 </div>
                             ) : (
@@ -184,11 +192,11 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
                                                 />
                                                 {isParsing && <Spinner size="small" />}
                                             </div>
-                                                {resumeText && !isParsing && !error && (
-                                                    <div className="text-green-600 text-sm font-medium flex items-center gap-2 mt-2">
-                                                        <CheckmarkCircle20Filled /> PDF parsed successfully.
-                                                    </div>
-                                                )}
+                                            {resumeText && !isParsing && !error && (
+                                                <div className="text-green-600 text-sm font-medium flex items-center gap-2 mt-2">
+                                                    <CheckmarkCircle20Filled /> PDF parsed successfully.
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
@@ -219,11 +227,6 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({ onSuccess }) =
                                         {loading ? <Spinner size="tiny" /> : 'Create Exam'}
                                     </Button>
                                 </>
-                            )}
-                            {createdLink && (
-                                <DialogTrigger disableButtonEnhancement>
-                                    <Button appearance="primary">Close</Button>
-                                </DialogTrigger>
                             )}
                         </DialogActions>
                     </DialogBody>

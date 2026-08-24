@@ -55,6 +55,24 @@ class AdminLoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+class AdminUserResponse(BaseModel):
+    id: uuid.UUID
+    email: str
+    is_superadmin: bool
+    created_at: datetime
+
+class AdminUserListResponse(BaseModel):
+    admins: List[AdminUserResponse]
+
+class AdminCreateRequest(BaseModel):
+    email: EmailStr
+    password: str
+    is_superadmin: bool = False
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+    
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str

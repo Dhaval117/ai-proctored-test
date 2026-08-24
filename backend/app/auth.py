@@ -53,3 +53,12 @@ def get_current_admin(token: str = Depends(oauth2_scheme), db: Session = Depends
     if admin is None:
         raise credentials_exception
     return admin
+
+def get_current_superadmin(current_admin: AdminUser = Depends(get_current_admin)) -> AdminUser:
+    if not current_admin.is_superadmin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Superadmin privileges required"
+        )
+    return current_admin
+

@@ -19,17 +19,23 @@ import AdminPage from './pages/AdminPage'
 import AdminReportPage from './pages/AdminReportPage'
 import SystemCheckPage from './pages/SystemCheckPage'
 import ExamPage from './pages/ExamPage'
+import SuperAdminManagerPage from './pages/SuperAdminManagerPage'
+import AdminSettingsPage from './pages/AdminSettingsPage'
 
 export default function App() {
   return (
     <AuthProvider>
       <DesktopGuard>
         <Routes>
+          <Route path="/" element={<Navigate to="/admin" replace />} />
+          
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminPage />} />
             <Route path="sessions/:id" element={<AdminReportPage />} />
+            <Route path="managers" element={<SuperAdminManagerPage />} />
+            <Route path="settings" element={<AdminSettingsPage />} />
           </Route>
 
           {/* Candidate Routes */}

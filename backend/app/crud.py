@@ -26,9 +26,25 @@ from app.config import MAX_VIOLATIONS, PROCTORING_ENABLED
 def get_admin_by_email(db: Session, email: str) -> Optional[AdminUser]:
     return db.scalar(select(AdminUser).where(AdminUser.email == email))
 
-def create_admin(db: Session, email: str, hashed_password: str) -> AdminUser:
-    admin = AdminUser(email=email, hashed_password=hashed_password)
+def create_admin(db: Session, email: str, hashed_password: str, is_superadmin: bool = False) -> AdminUser:
+    admin = AdminUser(email=email, hashed_password=hashed_password, is_superadmin=is_superadmin)
     db.add(admin)
+    db.flush()
+    return admin
+
+def get_all_admins(db: Session) -> list[AdminUser]:
+    return list(db.scalars(select(AdminUser)).all())
+
+def delete_admin(db: Session, admin_id: str) -> bool:
+    admin = db.get(AdminUser, admin_id)
+    if not admin:
+        return False
+    db.delete(admin)
+    db.flush()
+    return True
+
+def update_admin_password(db: Session, admin: AdminUser, hashed_password: str) -> AdminUser:
+    admin.hashed_password = hashed_password
     db.flush()
     return admin
 

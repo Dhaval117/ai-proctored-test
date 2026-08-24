@@ -31,6 +31,11 @@ def main():
         required=True, 
         help="The password for the admin user."
     )
+    parser.add_argument(
+        "--superadmin",
+        action="store_true",
+        help="Create this user as a super admin."
+    )
     
     args = parser.parse_args()
     
@@ -43,9 +48,9 @@ def main():
             sys.exit(0)
             
         # Hash password and create admin
-        logger.info(f"Creating admin user '{args.email}'...")
+        logger.info(f"Creating admin user '{args.email}' (superadmin: {args.superadmin})...")
         hashed_pw = get_password_hash(args.password)
-        create_admin(db, email=args.email, hashed_password=hashed_pw)
+        create_admin(db, email=args.email, hashed_password=hashed_pw, is_superadmin=args.superadmin)
         db.commit()
         
         logger.info("Admin user created successfully.")

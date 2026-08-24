@@ -182,8 +182,12 @@ async function request<T>(
       window.location.href = '/admin/login'
       throw new ApiError(401, null, 'Session expired. Please log in again.')
     }
-    const message =
-      data?.detail?.message ?? data?.detail ?? `HTTP ${res.status}`
+    let message = data?.detail?.message ?? data?.detail ?? `HTTP ${res.status}`
+    if (Array.isArray(message)) {
+      message = message.map((m: any) => m.msg || JSON.stringify(m)).join(', ')
+    } else if (typeof message === 'object') {
+      message = JSON.stringify(message)
+    }
     throw new ApiError(res.status, data?.detail, message)
   }
 
@@ -213,6 +217,17 @@ export interface AdminSessionListResponse {
   page: number
   page_size: number
   sessions: AdminSessionSummary[]
+}
+
+export interface AdminUserResponse {
+  id: string
+  email: string
+  is_superadmin: boolean
+  created_at: string
+}
+
+export interface AdminUserListResponse {
+  admins: AdminUserResponse[]
 }
 
 export const api = {
@@ -245,6 +260,21 @@ export const api = {
 
   getAdminSessionDetail: (sessionId: string) =>
     request<SessionReport>('GET', `/api/admin/sessions/${sessionId}`),
+
+  getMe: () =>
+    request<AdminUserResponse>('GET', '/api/admin/me'),
+
+  updatePassword: (body: any) =>
+    request<any>('PUT', '/api/admin/me/password', body),
+
+  getManagers: () =>
+    request<AdminUserListResponse>('GET', '/api/admin/managers'),
+
+  createManager: (body: any) =>
+    request<AdminUserResponse>('POST', '/api/admin/managers', body),
+
+  deleteManager: (adminId: string) =>
+    request<any>('DELETE', `/api/admin/managers/${adminId}`),
 
   // Exam
   getNextQuestion: (sessionId: string) =>
