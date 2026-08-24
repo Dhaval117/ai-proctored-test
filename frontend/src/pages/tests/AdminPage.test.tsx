@@ -5,7 +5,7 @@ import AdminPage from "../AdminPage"
 import { api } from "../../lib/api"
 import { ThemeProvider } from "../../context/ThemeContext"
 
-vi.mock('../lib/api', () => ({
+vi.mock('../../lib/api', () => ({
   api: {
     getAdminSessions: vi.fn(),
   },
@@ -44,7 +44,7 @@ describe('AdminPage (Story 5.1)', () => {
       </ThemeProvider>
     )
 
-    expect(screen.getByText(/Admin Portal — Exam Sessions/i)).toBeInTheDocument()
+    expect(screen.getByText(/Admin Portal - Exam Sessions/i)).toBeInTheDocument()
 
     await waitFor(() => {
       expect(screen.getByText('Alice Smith')).toBeInTheDocument()

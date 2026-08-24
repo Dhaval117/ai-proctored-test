@@ -44,4 +44,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://127.0.0.1:8000/health || exit 1
 
 # Start script: run database initialization/migration checks, then start Uvicorn
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "alembic upgrade head && python create_admin.py --email ${ADMIN_EMAIL:-admin@proctorai.local} --password ${ADMIN_PASSWORD:-admin123} && uvicorn app.main:app --host 0.0.0.0 --port 8000"]

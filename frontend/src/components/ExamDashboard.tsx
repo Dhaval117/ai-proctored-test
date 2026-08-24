@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { api } from '../lib/api'
 import {
   Card,
   Title2,
@@ -51,9 +52,7 @@ export function ExamDashboard({ sessionId, onExamComplete }: ExamDashboardProps)
   const fetchNextQuestion = async () => {
     try {
       setIsLoading(true)
-      const res = await fetch(`/api/sessions/${sessionId}/next-question`)
-      if (!res.ok) throw new Error('Failed to fetch next question')
-      const data = await res.json()
+      const data = await api.getNextQuestion(sessionId)
 
       setCurrentQuestion(data.question_text)
       setQuestionNumber(data.main_question_number)
@@ -79,17 +78,10 @@ export function ExamDashboard({ sessionId, onExamComplete }: ExamDashboardProps)
 
     try {
       setIsSubmitting(true)
-      const res = await fetch(`/api/sessions/${sessionId}/submit-answer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question_id: '00000000-0000-0000-0000-000000000000',
-          transcribed_text: transcript,
-        }),
+      const data = await api.submitAnswer(sessionId, {
+        question_id: '00000000-0000-0000-0000-000000000000',
+        transcribed_text: transcript,
       })
-
-      if (!res.ok) throw new Error('Failed to submit answer')
-      const data = await res.json()
 
       if (data.next_action === 'EXAM_COMPLETE') {
         if (onExamComplete) onExamComplete(true)

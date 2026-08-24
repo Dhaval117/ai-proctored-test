@@ -7,13 +7,15 @@
 // Types (mirroring backend schemas)
 // ─────────────────────────────────────────────
 
-export type ExamStatus = 'SETUP' | 'ACTIVE' | 'COMPLETED' | 'SUSPENDED'
+export type ExamStatus = 'SETUP' | 'ACTIVE' | 'COMPLETED' | 'SUSPENDED' | 'EXPIRED'
 
 export interface CreateSessionRequest {
   name: string
   email: string
   language: string
   experience_years: number
+  num_questions?: number
+  follow_ups_per_question?: number
 }
 
 export interface CreateSessionResponse {
@@ -31,6 +33,7 @@ export interface VerifySessionResponse {
   session_id: string
   status: ExamStatus
   message: string
+  exam_token?: string
 }
 
 export interface SessionDetail {
@@ -41,9 +44,12 @@ export interface SessionDetail {
   experience_years: number
   status: ExamStatus
   violation_count: number
-  risk_score: number
+  average_score?: number | null
   created_at: string
   completed_at?: string | null
+  total_questions: number
+  num_questions: number
+  follow_ups_per_question: number
 }
 
 export type NextAction = 'FOLLOW_UP' | 'NEXT_QUESTION' | 'EXAM_COMPLETE'
@@ -138,20 +144,44 @@ class ApiError extends Error {
   }
 }
 
+let currentExamToken: string | null = null
+export const setExamToken = (token: string | null) => { currentExamToken = token }
+export const getExamToken = () => currentExamToken
+
 async function request<T>(
   method: string,
   path: string,
   body?: unknown,
+  isFormData?: boolean
 ): Promise<T> {
+  const headers: Record<string, string> = {}
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json'
+  }
+
+  const token = localStorage.getItem('admin_token')
+  if (token && path.startsWith('/api/admin')) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  
+  if (currentExamToken) {
+    headers['X-Exam-Token'] = currentExamToken
+  }
+
   const res = await fetch(path, {
     method,
-    headers: { 'Content-Type': 'application/json' },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    headers,
+    body: isFormData ? (body as FormData) : (body !== undefined ? JSON.stringify(body) : undefined),
   })
 
   const data = await res.json().catch(() => null)
 
   if (!res.ok) {
+    if (res.status === 401 && path.startsWith('/api/admin') && path !== '/api/admin/login') {
+      localStorage.removeItem('admin_token')
+      window.location.href = '/admin/login'
+      throw new ApiError(401, null, 'Session expired. Please log in again.')
+    }
     const message =
       data?.detail?.message ?? data?.detail ?? `HTTP ${res.status}`
     throw new ApiError(res.status, data?.detail, message)
@@ -175,6 +205,7 @@ export interface AdminSessionSummary {
   risk_score: number
   created_at: string
   completed_at?: string
+  expires_at?: string
 }
 
 export interface AdminSessionListResponse {
@@ -185,8 +216,14 @@ export interface AdminSessionListResponse {
 }
 
 export const api = {
-  createSession: (body: CreateSessionRequest) =>
-    request<CreateSessionResponse>('POST', '/api/sessions/create', body),
+  createAdminSession: (body: any) =>
+    request<CreateSessionResponse>('POST', '/api/admin/sessions', body),
+
+  parseResume: (formData: FormData) =>
+    request<any>('POST', '/api/admin/parse-resume', formData, true),
+
+  checkSessionValidity: (sessionId: string) =>
+    request<any>('GET', `/api/sessions/${sessionId}/verify`),
 
   verifySession: (sessionId: string, body: VerifySessionRequest) =>
     request<VerifySessionResponse>('POST', `/api/sessions/${sessionId}/verify`, body),

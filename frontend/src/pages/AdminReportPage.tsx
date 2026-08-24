@@ -178,10 +178,14 @@ export default function AdminReportPage() {
                 <span>
                   Language: <strong className={styles.headerMetaBrand}>{session.language}</strong>
                 </span>
-                <span>•</span>
-                <span>
-                  Experience: <strong className={styles.headerMetaValue}>{session.experience_years} years</strong>
-                </span>
+                {session.language !== "Resume Based" && (
+                  <>
+                    <span>•</span>
+                    <span>
+                      Experience: <strong className={styles.headerMetaValue}>{session.experience_years} years</strong>
+                    </span>
+                  </>
+                )}
                 <span>•</span>
                 <span>
                   Exam Started: <strong className={styles.headerMetaValue}>{new Date(session.created_at).toLocaleString()}</strong>
@@ -196,7 +200,7 @@ export default function AdminReportPage() {
                   Questions Answered
                 </Text>
                 <Text className={styles.metricValueBrand}>
-                  {mainQuestions.length} / 5
+                  {mainQuestions.length} / {session.total_questions}
                 </Text>
               </div>
 

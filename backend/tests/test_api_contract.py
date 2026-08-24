@@ -24,6 +24,8 @@ from app.main import app  # noqa: E402
 from app.database import Base, get_db  # noqa: E402
 from app.mock_data import QUESTION_ID  # noqa: E402
 from app.config import MAX_MAIN_QUESTIONS  # noqa: E402
+from app.auth import get_password_hash  # noqa: E402
+from app.models import AdminUser  # noqa: E402
 
 # ─────────────────────────────────────────────
 # Test DB Setup & Dependency Override
@@ -81,6 +83,21 @@ def client(db_session):
 
 
 # ─────────────────────────────────────────────
+
+@pytest.fixture()
+def admin_token(client, db_session):
+    db_session.query(AdminUser).filter_by(email="testadmin@proctorai.local").delete()
+    admin = AdminUser(email="testadmin@proctorai.local", hashed_password=get_password_hash("password"))
+    db_session.add(admin)
+    db_session.commit()
+    r = client.post("/api/admin/login", data={"username": "testadmin@proctorai.local", "password": "password"})
+    return r.json()["access_token"]
+
+@pytest.fixture()
+def auth_headers(admin_token):
+    return {"Authorization": f"Bearer {admin_token}"}
+
+
 # Helper payloads
 # ─────────────────────────────────────────────
 
@@ -112,7 +129,7 @@ VALID_EVENT_PAYLOAD = {
 # ─────────────────────────────────────────────
 
 class TestHealth:
-    def test_health_returns_ok(self, client):
+    def test_health_returns_ok(self, client, auth_headers):
         r = client.get("/health")
         assert r.status_code == 200
         assert r.json()["status"] == "ok"
@@ -123,9 +140,9 @@ class TestHealth:
 # ─────────────────────────────────────────────
 
 class TestCreateSession:
-    def test_success_returns_201_with_uuids(self, client):
-        r = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
-        assert r.status_code == 201
+    def test_success_returns_201_with_uuids(self, client, auth_headers):
+        r = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
+        assert r.status_code == 200
         body = r.json()
         # Must be a real UUID, not hardcoded mock
         assert len(body["session_id"]) == 36
@@ -133,26 +150,26 @@ class TestCreateSession:
         assert body["status"] == "SETUP"
         assert "Session created" in body["message"]
 
-    def test_same_email_reuses_candidate(self, client):
-        r1 = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
-        r2 = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
-        assert r1.status_code == 201
-        assert r2.status_code == 201
+    def test_same_email_reuses_candidate(self, client, auth_headers):
+        r1 = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
+        r2 = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
+        assert r1.status_code == 200
+        assert r2.status_code == 200
         # Same candidate, different session
         assert r1.json()["candidate_id"] == r2.json()["candidate_id"]
         assert r1.json()["session_id"] != r2.json()["session_id"]
 
-    def test_missing_required_field_returns_422(self, client):
+    def test_missing_required_field_returns_422(self, client, auth_headers):
         payload = {k: v for k, v in VALID_CREATE_PAYLOAD.items() if k != "email"}
-        r = client.post("/api/sessions/create", json=payload)
+        r = client.post("/api/admin/sessions", headers=auth_headers, json=payload)
         assert r.status_code == 422
 
-    def test_invalid_email_returns_422(self, client):
-        r = client.post("/api/sessions/create", json={**VALID_CREATE_PAYLOAD, "email": "not-an-email"})
+    def test_invalid_email_returns_422(self, client, auth_headers):
+        r = client.post("/api/admin/sessions", headers=auth_headers, json={**VALID_CREATE_PAYLOAD, "email": "not-an-email"})
         assert r.status_code == 422
 
-    def test_negative_experience_returns_422(self, client):
-        r = client.post("/api/sessions/create", json={**VALID_CREATE_PAYLOAD, "experience_years": -1})
+    def test_negative_experience_returns_422(self, client, auth_headers):
+        r = client.post("/api/admin/sessions", headers=auth_headers, json={**VALID_CREATE_PAYLOAD, "experience_years": -1})
         assert r.status_code == 422
 
 
@@ -161,34 +178,50 @@ class TestCreateSession:
 # ─────────────────────────────────────────────
 
 class TestVerifySession:
-    def _create_session(self, client) -> str:
-        r = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+    def _create_session(self, client, auth_headers) -> str:
+        r = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         return r.json()["session_id"]
 
-    def test_success_transitions_to_active(self, client):
-        session_id = self._create_session(client)
+    def test_success_transitions_to_active(self, client, auth_headers):
+        session_id = self._create_session(client, auth_headers)
         r = client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
         assert r.status_code == 200
         body = r.json()
         assert body["status"] == "ACTIVE"
         assert "verified" in body["message"].lower()
 
-    def test_unknown_session_returns_404(self, client):
+    def test_unknown_session_returns_404(self, client, auth_headers):
         fake_id = "00000000-0000-0000-0000-000000000000"
         r = client.post(f"/api/sessions/{fake_id}/verify", json=VALID_VERIFY_PAYLOAD)
         assert r.status_code == 404
 
-    def test_double_verify_returns_409(self, client):
+    def test_double_verify_returns_409(self, client, auth_headers):
         """Verifying an already-ACTIVE session should return 409 CONFLICT."""
-        session_id = self._create_session(client)
+        session_id = self._create_session(client, auth_headers)
         client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
         r = client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
         assert r.status_code == 409
 
-    def test_missing_photo_returns_422(self, client):
-        session_id = self._create_session(client)
+    def test_missing_photo_returns_422(self, client, auth_headers):
+        session_id = self._create_session(client, auth_headers)
         r = client.post(f"/api/sessions/{session_id}/verify", json={})
         assert r.status_code == 422
+
+    def test_expired_session_returns_403(self, client, auth_headers, db_session):
+        from datetime import datetime, timezone, timedelta
+        from app.models import ExamSession
+        r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
+        session_id = r_create.json()["session_id"]
+        
+        # Manually expire the session in DB
+        db_session.query(ExamSession).filter_by(id=session_id).update(
+            {"expires_at": datetime.now(timezone.utc) - timedelta(hours=1)}
+        )
+        db_session.commit()
+        
+        r = client.get(f"/api/sessions/{session_id}/verify")
+        assert r.status_code == 403
+        assert "expired" in r.json()["detail"]["message"].lower()
 
 
 # ─────────────────────────────────────────────
@@ -196,8 +229,8 @@ class TestVerifySession:
 # ─────────────────────────────────────────────
 
 class TestGetSession:
-    def test_success_returns_full_detail(self, client):
-        r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+    def test_success_returns_full_detail(self, client, auth_headers):
+        r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
 
         r = client.get(f"/api/sessions/{session_id}")
@@ -210,9 +243,9 @@ class TestGetSession:
         assert body["language"] == "Python"
         assert body["candidate_name"] == "Test Candidate"
 
-    def test_status_updates_after_verify(self, client):
+    def test_status_updates_after_verify(self, client, auth_headers):
         """Session fetched after verify should show ACTIVE status."""
-        r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+        r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
         client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
 
@@ -220,7 +253,7 @@ class TestGetSession:
         assert r.status_code == 200
         assert r.json()["status"] == "ACTIVE"
 
-    def test_unknown_session_returns_404(self, client):
+    def test_unknown_session_returns_404(self, client, auth_headers):
         r = client.get("/api/sessions/00000000-0000-0000-0000-000000000000")
         assert r.status_code == 404
 
@@ -230,8 +263,8 @@ class TestGetSession:
 # ─────────────────────────────────────────────
 
 class TestGetNextQuestion:
-    def test_success(self, client):
-        r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+    def test_success(self, client, auth_headers):
+        r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
         r = client.get(f"/api/sessions/{session_id}/next-question")
         assert r.status_code == 200
@@ -240,14 +273,14 @@ class TestGetNextQuestion:
         assert "question_text" in body
         assert body["total_main_questions"] == MAX_MAIN_QUESTIONS
 
-    def test_unknown_session_returns_404(self, client):
+    def test_unknown_session_returns_404(self, client, auth_headers):
         r = client.get("/api/sessions/00000000-0000-0000-0000-000000000000/next-question")
         assert r.status_code == 404
 
 
 class TestSubmitAnswer:
-    def test_success(self, client):
-        r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+    def test_success(self, client, auth_headers):
+        r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
         client.get(f"/api/sessions/{session_id}/next-question")
         r = client.post(f"/api/sessions/{session_id}/submit-answer", json=VALID_ANSWER_PAYLOAD)
@@ -256,8 +289,8 @@ class TestSubmitAnswer:
         assert 0 <= body["evaluation_score"] <= 10
         assert body["next_action"] in ("FOLLOW_UP", "NEXT_QUESTION", "EXAM_COMPLETE")
 
-    def test_empty_answer_rejected(self, client):
-        r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+    def test_empty_answer_rejected(self, client, auth_headers):
+        r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
         r = client.post(
             f"/api/sessions/{session_id}/submit-answer",
@@ -265,7 +298,7 @@ class TestSubmitAnswer:
         )
         assert r.status_code == 422
 
-    def test_submit_bad_answer_preserves_main_feedback(self, client):
+    def test_submit_bad_answer_preserves_main_feedback(self, client, auth_headers):
         from unittest.mock import patch
         
         class CustomMockLLM:
@@ -288,7 +321,7 @@ class TestSubmitAnswer:
                 return MockStructured()
 
         with patch("app.orchestrator.nodes.get_llm", return_value=CustomMockLLM()):
-            r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+            r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
             session_id = r_create.json()["session_id"]
             
             client.get(f"/api/sessions/{session_id}/next-question")
@@ -306,7 +339,7 @@ class TestSubmitAnswer:
             assert r2.json()["next_action"] == "NEXT_QUESTION"
             
             # Verify via admin endpoint
-            r_admin = client.get(f"/api/admin/sessions/{session_id}")
+            r_admin = client.get(f"/api/admin/sessions/{session_id}", headers=auth_headers)
             qas = r_admin.json()["qa_transcript"]
             
             assert len(qas) == 2
@@ -324,35 +357,35 @@ class TestSubmitAnswer:
 # ─────────────────────────────────────────────
 
 class TestLogEvent:
-    def _create_session(self, client) -> str:
-        r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+    def _create_session(self, client, auth_headers) -> str:
+        r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
         client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
         return session_id
 
-    def test_first_violation_returns_active(self, client):
-        session_id = self._create_session(client)
+    def test_first_violation_returns_active(self, client, auth_headers):
+        session_id = self._create_session(client, auth_headers)
         r = client.post(f"/api/sessions/{session_id}/log-event", json=VALID_EVENT_PAYLOAD)
         assert r.status_code == 200
         body = r.json()
         assert body["violation_count"] == 1
         assert body["session_status"] == "ACTIVE"
 
-    def test_third_violation_suspends_session(self, client):
-        session_id = self._create_session(client)
+    def test_third_violation_suspends_session(self, client, auth_headers):
+        session_id = self._create_session(client, auth_headers)
         for _ in range(3):
             r = client.post(f"/api/sessions/{session_id}/log-event", json=VALID_EVENT_PAYLOAD)
         assert r.json()["session_status"] == "SUSPENDED"
 
-    def test_low_severity_does_not_suspend(self, client):
-        session_id = self._create_session(client)
+    def test_low_severity_does_not_suspend(self, client, auth_headers):
+        session_id = self._create_session(client, auth_headers)
         low_payload = {**VALID_EVENT_PAYLOAD, "severity": "LOW"}
         for _ in range(5):
             r = client.post(f"/api/sessions/{session_id}/log-event", json=low_payload)
         assert r.json()["session_status"] == "ACTIVE"
 
-    def test_invalid_event_type_rejected(self, client):
-        session_id = self._create_session(client)
+    def test_invalid_event_type_rejected(self, client, auth_headers):
+        session_id = self._create_session(client, auth_headers)
         r = client.post(
             f"/api/sessions/{session_id}/log-event",
             json={**VALID_EVENT_PAYLOAD, "event_type": "INVALID_TYPE"},
@@ -361,16 +394,16 @@ class TestLogEvent:
 
 
 class TestProctoringConfig:
-    def test_get_config_default(self, client):
+    def test_get_config_default(self, client, auth_headers):
         r = client.get("/api/proctoring/config")
         assert r.status_code == 200
         body = r.json()
         assert "proctoring_enabled" in body
         assert "allow_toggle" in body
 
-    def test_log_event_when_disabled(self, client):
+    def test_log_event_when_disabled(self, client, auth_headers):
         from unittest.mock import patch
-        r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+        r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
         client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
         
@@ -389,41 +422,56 @@ class TestProctoringConfig:
 # ─────────────────────────────────────────────
 
 class TestAdminSessionList:
-    def test_returns_list(self, client):
-        r = client.get("/api/admin/sessions")
+    def test_returns_list(self, client, auth_headers):
+        r = client.get("/api/admin/sessions", headers=auth_headers)
         assert r.status_code == 200
         body = r.json()
         assert "sessions" in body
         assert isinstance(body["sessions"], list)
 
-    def test_filter_by_status(self, client):
-        r = client.get("/api/admin/sessions?status=COMPLETED")
+    def test_filter_by_status(self, client, auth_headers):
+        r = client.get("/api/admin/sessions?status=COMPLETED", headers=auth_headers)
         assert r.status_code == 200
         for s in r.json()["sessions"]:
             assert s["status"] == "COMPLETED"
 
-    def test_filter_by_language(self, client):
-        r = client.get("/api/admin/sessions?language=Python")
+    def test_filter_by_language(self, client, auth_headers):
+        r = client.get("/api/admin/sessions?language=Python", headers=auth_headers)
         assert r.status_code == 200
         for s in r.json()["sessions"]:
             assert s["language"].lower() == "python"
 
-    def test_invalid_status_rejected(self, client):
-        r = client.get("/api/admin/sessions?status=INVALID_STATUS")
+    def test_invalid_status_rejected(self, client, auth_headers):
+        r = client.get("/api/admin/sessions?status=INVALID_STATUS", headers=auth_headers)
         assert r.status_code == 422
 
 
 class TestAdminSessionDetail:
-    def test_success(self, client):
-        r_create = client.post("/api/sessions/create", json=VALID_CREATE_PAYLOAD)
+    def test_success(self, client, auth_headers):
+        r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
-        r = client.get(f"/api/admin/sessions/{session_id}")
+        r = client.get(f"/api/admin/sessions/{session_id}", headers=auth_headers)
         assert r.status_code == 200
         body = r.json()
         assert "session" in body
         assert "qa_transcript" in body
         assert "proctoring_logs" in body
 
-    def test_unknown_session_returns_404(self, client):
-        r = client.get("/api/admin/sessions/00000000-0000-0000-0000-000000000000")
+    def test_unknown_session_returns_404(self, client, auth_headers):
+        r = client.get("/api/admin/sessions/00000000-0000-0000-0000-000000000000", headers=auth_headers)
         assert r.status_code == 404
+
+class TestJWTAuth:
+    def test_default_jwt_expiry_is_24_hours(self):
+        from app.auth import create_access_token
+        import jwt
+        from app.auth import SECRET_KEY, ALGORITHM
+        from datetime import datetime, timezone
+
+        now = datetime.now(timezone.utc).timestamp()
+        token = create_access_token({"sub": "test@test.com"})
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        
+        # Expiry should be around 24 hours (86400 seconds) from now
+        assert payload["exp"] - now > 86300
+        assert payload["exp"] - now <= 86400

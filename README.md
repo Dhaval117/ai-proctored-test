@@ -2,6 +2,12 @@
 
 An enterprise-grade, AI-powered technical assessment platform combining adaptive technical interviewing (powered by **LangGraph** & **Google Gemini 3.1 Pro**) with real-time browser & webcam AI proctoring (**Face-API.js**, speech/tab-switching monitoring).
 
+## ✨ Key Features
+- **Adaptive AI Interviewing**: Dynamic conversational questions that adapt to the candidate's language and experience level.
+- **Configurable Exams**: Admins can customize the number of main questions, follow-ups, and set a time limit (expiration) for each unique exam link.
+- **One-Time Secure Links**: Exam links are single-use. Once started or expired, they cannot be accessed again. In-memory tokens prevent unauthorized REST endpoint access.
+- **Real-time AI Proctoring**: Face tracking, tab-switching detection, and developer-tools monitoring.
+
 ---
 
 ## 🚀 Quick Start: Run Anywhere (Docker Option with `uv` - Recommended)
@@ -33,6 +39,7 @@ Before getting started with local development without Docker, ensure you have th
 - **Docker & Docker Compose**: (Optional, required only if running containerized deployment via `docker-compose.yml`)
 - **Node.js**: `v20.0.0` or higher (LTS v24 recommended)
 - **npm**: `v9.0.0` or higher (bundled with Node.js)
+- **FFmpeg**: Required for audio processing (Whisper). Must be installed and accessible in your system's PATH.
 - **API Key**: A valid [Google Gemini API Key](https://aistudio.google.com/app/apikey) (`GEMINI_API_KEY`)
 
 ---
@@ -79,6 +86,8 @@ Before getting started with local development without Docker, ensure you have th
    GEMINI_API_KEY="your_google_gemini_api_key_here"
    GEMINI_MODEL="gemini-3.1-flash-lite"
    DATABASE_URL="sqlite:///./dev.db" # Or postgresql://user:pass@host:5432/dbname
+   JWT_SECRET_KEY="super_secret_key_that_is_at_least_32_bytes_long_for_hs256"
+   LIVE_TRANSCRIPTION_ENABLED=true
    ```
 
 4. **Database Migrations**:
@@ -93,6 +102,12 @@ Before getting started with local development without Docker, ensure you have th
      alembic revision --autogenerate -m "Add new column or table"
      alembic upgrade head
      ```
+
+5. **Create an Admin User**:
+   To access the admin dashboard, you need to create an initial admin user account. You can use the provided script to do this:
+   ```bash
+   uv run python create_admin.py --email admin@example.com --password "your_secure_password"
+   ```
 
 ---
 

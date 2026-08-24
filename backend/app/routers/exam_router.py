@@ -1,20 +1,53 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Header
 from sqlalchemy.orm import Session
 import uuid
 
 from app.database import get_db
 from app import crud
 from app.orchestrator import exam_graph
-from app.schemas import QuestionResponse, SubmitAnswerRequest, SubmitAnswerResponse, NextAction
+from app.schemas import QuestionResponse, SubmitAnswerRequest, SubmitAnswerResponse, NextAction, VerifySessionResponse
+from datetime import datetime, timezone
 from app.config import MAX_MAIN_QUESTIONS
 
 router = APIRouter(prefix="/api/sessions", tags=["exam"])
 
-@router.get("/{session_id}/next-question", response_model=QuestionResponse)
-def get_next_question(session_id: uuid.UUID, db: Session = Depends(get_db)):
+@router.get("/{session_id}/verify", response_model=VerifySessionResponse)
+def verify_session_link(session_id: uuid.UUID, db: Session = Depends(get_db)):
     session = crud.get_session(db, str(session_id))
     if not session:
         raise HTTPException(status_code=404, detail={"error": "NOT_FOUND", "message": "Session not found."})
+    if session.expires_at:
+        # SQLite drops timezone info, so we ensure both sides are naive UTC datetimes for comparison
+        expires_naive = session.expires_at.replace(tzinfo=None)
+        now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
+        if expires_naive < now_naive:
+            if session.status != "EXPIRED":
+                session.status = "EXPIRED"
+                db.commit()
+            raise HTTPException(status_code=403, detail={"error": "EXPIRED", "message": "Exam link has expired."})
+
+    if session.status == "ACTIVE":
+        # Candidate is reopening an active exam link. Mark it as suspended.
+        session.status = "SUSPENDED"
+        db.commit()
+        raise HTTPException(status_code=403, detail={"error": "SUSPENDED", "message": "Exam suspended because you left the session."})
+    elif session.status != "SETUP":
+        raise HTTPException(status_code=403, detail={"error": "EXPIRED", "message": "Exam link has already been used."})
+        
+    return VerifySessionResponse(
+        session_id=uuid.UUID(session.id),
+        status=session.status,
+        message="Session is valid."
+    )
+
+@router.get("/{session_id}/next-question", response_model=QuestionResponse)
+def get_next_question(session_id: uuid.UUID, db: Session = Depends(get_db), x_exam_token: str | None = Header(None, alias="X-Exam-Token")):
+    session = crud.get_session(db, str(session_id))
+    if not session:
+        raise HTTPException(status_code=404, detail={"error": "NOT_FOUND", "message": "Session not found."})
+        
+    if not x_exam_token or session.exam_token != x_exam_token:
+        raise HTTPException(status_code=403, detail={"error": "UNAUTHORIZED", "message": "Invalid or missing exam token."})
         
     config = {"configurable": {"thread_id": str(session_id)}}
     state = exam_graph.get_state(config)
@@ -29,7 +62,10 @@ def get_next_question(session_id: uuid.UUID, db: Session = Depends(get_db)):
             "followup_count": 0,
             "messages": [],
             "current_topic": "Init",
-            "is_terminated": False
+            "is_terminated": False,
+            "resume_text": session.resume_text or "",
+            "num_questions": session.num_questions,
+            "follow_ups_per_question": session.follow_ups_per_question,
         }, config)
         state = exam_graph.get_state(config)
     elif state.next and state.next[0] != "process_answer":
@@ -68,11 +104,18 @@ def get_next_question(session_id: uuid.UUID, db: Session = Depends(get_db)):
         sequence_number=seq_num,
         is_follow_up=is_followup,
         main_question_number=state.values.get("question_count", 1),
-        total_main_questions=MAX_MAIN_QUESTIONS
+        total_main_questions=session.num_questions
     )
 
 @router.post("/{session_id}/submit-answer", response_model=SubmitAnswerResponse)
-def submit_answer(session_id: uuid.UUID, body: SubmitAnswerRequest, db: Session = Depends(get_db)):
+def submit_answer(session_id: uuid.UUID, body: SubmitAnswerRequest, db: Session = Depends(get_db), x_exam_token: str | None = Header(None, alias="X-Exam-Token")):
+    session = crud.get_session(db, str(session_id))
+    if not session:
+        raise HTTPException(status_code=404, detail={"error": "NOT_FOUND", "message": "Session not found."})
+    
+    if not x_exam_token or session.exam_token != x_exam_token:
+        raise HTTPException(status_code=403, detail={"error": "UNAUTHORIZED", "message": "Invalid or missing exam token."})
+
     config = {"configurable": {"thread_id": str(session_id)}}
     state = exam_graph.get_state(config)
     

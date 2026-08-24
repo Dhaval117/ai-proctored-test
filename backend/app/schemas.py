@@ -22,6 +22,7 @@ class ExamStatus(str, Enum):
     ACTIVE = "ACTIVE"
     COMPLETED = "COMPLETED"
     SUSPENDED = "SUSPENDED"
+    EXPIRED = "EXPIRED"
 
 
 class ViolationType(str, Enum):
@@ -50,6 +51,14 @@ class NextAction(str, Enum):
 # REQUEST BODIES
 # ─────────────────────────────────────────────
 
+class AdminLoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+
 class CreateSessionRequest(BaseModel):
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -57,15 +66,25 @@ class CreateSessionRequest(BaseModel):
             "email": "dhaval@example.com",
             "language": "Python",
             "experience_years": 3,
+            "expires_in_hours": 24
         }
     })
 
     name: str = Field(..., min_length=2, max_length=255)
     email: EmailStr
-    language: str = Field(..., min_length=1, max_length=100,
+    language: str = Field("Resume Based", min_length=1, max_length=100,
                           description="The technology/language the candidate is being assessed on")
-    experience_years: int = Field(..., ge=0, le=40,
+    experience_years: int = Field(0, ge=0, le=40,
                                   description="Candidate's self-reported years of experience")
+    expires_in_hours: Optional[int] = Field(None, ge=1, description="Hours until exam link expires")
+    resume_text: Optional[str] = Field(None, description="Parsed text from resume for dynamic exam context")
+    num_questions: int = Field(5, ge=1, le=20, description="Number of questions for the exam")
+    follow_ups_per_question: int = Field(1, ge=0, le=5, description="Number of follow-up questions per main question")
+
+class ParseResumeResponse(BaseModel):
+    language: str
+    experience_years: int
+    projects_summary: str
 
 
 class VerifySessionRequest(BaseModel):
@@ -109,6 +128,7 @@ class VerifySessionResponse(BaseModel):
     session_id: uuid.UUID
     status: ExamStatus
     message: str
+    exam_token: Optional[str] = None
 
 
 class SessionDetail(BaseModel):
@@ -122,6 +142,9 @@ class SessionDetail(BaseModel):
     risk_score: int
     created_at: datetime
     completed_at: Optional[datetime] = None
+    total_questions: int
+    num_questions: int
+    follow_ups_per_question: int
 
 
 class QuestionResponse(BaseModel):
@@ -160,9 +183,10 @@ class AdminSessionSummary(BaseModel):
     experience_years: int
     status: ExamStatus
     violation_count: int
-    risk_score: int
+    average_score: Optional[float] = None
     created_at: datetime
     completed_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
 
 
 class AdminSessionListResponse(BaseModel):

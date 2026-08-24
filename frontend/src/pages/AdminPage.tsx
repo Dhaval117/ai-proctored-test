@@ -35,6 +35,7 @@ import {
 } from '@fluentui/react-icons'
 import { api, type AdminSessionSummary } from '../lib/api'
 import { ThemeToggle } from '../components/ThemeToggle'
+import { CreateExamModal } from '../components/CreateExamModal'
 import { useAdminStyles } from "./styles/AdminPage.styles"
 import { useCommonStyles } from "./styles/common.styles"
 import { ADMIN_PAGE_SIZE } from '../utils/constants'
@@ -85,8 +86,16 @@ export default function AdminPage() {
 
   const totalPages = Math.max(1, Math.ceil(totalCount / ADMIN_PAGE_SIZE))
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = (s: AdminSessionSummary) => {
+    let displayStatus = s.status
+
+    if (displayStatus !== 'EXPIRED' && displayStatus !== 'COMPLETED' && s.expires_at) {
+      if (new Date(s.expires_at) < new Date()) {
+        displayStatus = 'EXPIRED'
+      }
+    }
+
+    switch (displayStatus) {
       case 'COMPLETED':
         return (
           <Badge appearance="filled" color="success" icon={<CheckmarkCircle20Filled />}>
@@ -99,6 +108,12 @@ export default function AdminPage() {
             Suspended
           </Badge>
         )
+      case 'EXPIRED':
+        return (
+          <Badge appearance="filled" color="severe" icon={<Warning20Filled />}>
+            Expired
+          </Badge>
+        )
       case 'ACTIVE':
         return (
           <Badge appearance="tint" color="brand">
@@ -107,7 +122,7 @@ export default function AdminPage() {
         )
       default:
         return (
-          <Badge appearance="outline" color="subtle">
+          <Badge appearance="tint" color="informative">
             Setup
           </Badge>
         )
@@ -138,9 +153,7 @@ export default function AdminPage() {
 
   return (
     <div className={`${commonStyles.pageContainer} animate-fade-in`}>
-      <div className={commonStyles.topToggle}>
-        <ThemeToggle />
-      </div>
+
 
       <div className={styles.mainWrapper}>
         {/* Header */}
@@ -157,16 +170,20 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <Button
-            appearance="secondary"
-            size="medium"
-            icon={<ArrowCounterclockwise20Regular />}
-            onClick={() => fetchSessions()}
-            disabled={isLoading}
-            className={styles.refreshBtn}
-          >
-            Refresh Data
-          </Button>
+          <div className="flex items-center gap-2">
+            <CreateExamModal onSuccess={fetchSessions} />
+            <Button
+              appearance="secondary"
+              size="medium"
+              icon={<ArrowCounterclockwise20Regular />}
+              onClick={() => fetchSessions()}
+              disabled={isLoading}
+              className={styles.refreshBtn}
+            >
+              Refresh Data
+            </Button>
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* Filter Bar */}
@@ -238,11 +255,11 @@ export default function AdminPage() {
               <TableHeader className={styles.tableHeader}>
                 <TableRow>
                   <TableHeaderCell className={styles.tableHeaderCellCandidate}>Candidate</TableHeaderCell>
-                  <TableHeaderCell className={styles.tableHeaderCell}>Language / Exp</TableHeaderCell>
-                  <TableHeaderCell className={styles.tableHeaderCell}>Status</TableHeaderCell>
-                  <TableHeaderCell className={styles.tableHeaderCell}>Violations</TableHeaderCell>
-                  <TableHeaderCell className={styles.tableHeaderCell}>Risk Score</TableHeaderCell>
-                  <TableHeaderCell className={styles.tableHeaderCell}>Created At</TableHeaderCell>
+                  <TableHeaderCell className={styles.tableHeaderCellLanguage}>Language / Exp</TableHeaderCell>
+                  <TableHeaderCell className={styles.tableHeaderCellCompact}>Status</TableHeaderCell>
+                  <TableHeaderCell className={styles.tableHeaderCellCompact}>Violations</TableHeaderCell>
+                  <TableHeaderCell className={styles.tableHeaderCellCompact}>Created At</TableHeaderCell>
+                  <TableHeaderCell className={styles.tableHeaderCellCompact}>Average Score</TableHeaderCell>
                   <TableHeaderCell className={styles.tableHeaderCellActions}>Actions</TableHeaderCell>
                 </TableRow>
               </TableHeader>
@@ -279,13 +296,15 @@ export default function AdminPage() {
                       <TableCell className={styles.tableCell}>
                         <div>
                           <Text className={styles.languageText}>{s.language}</Text>
-                          <Text className={styles.expText}>
-                            {s.experience_years} yrs exp
-                          </Text>
+                          {s.language !== "Resume Based" && (
+                            <Text className={styles.expText}>
+                              {s.experience_years} yrs exp
+                            </Text>
+                          )}
                         </div>
                       </TableCell>
 
-                      <TableCell className={styles.tableCell}>{getStatusBadge(s.status)}</TableCell>
+                      <TableCell className={styles.tableCell}>{getStatusBadge(s)}</TableCell>
 
                       <TableCell className={styles.violationsCell}>
                         <span className={s.violation_count > 0 ? styles.violationsHighlight : styles.violationsNormal}>
@@ -294,8 +313,6 @@ export default function AdminPage() {
                         <span className={styles.violationsMax}> / 3</span>
                       </TableCell>
 
-                      <TableCell className={styles.tableCell}>{getRiskScoreBadge(s.risk_score)}</TableCell>
-
                       <TableCell className={styles.dateCell}>
                         {new Date(s.created_at).toLocaleString([], {
                           month: 'short',
@@ -303,6 +320,10 @@ export default function AdminPage() {
                           hour: '2-digit',
                           minute: '2-digit',
                         })}
+                      </TableCell>
+
+                      <TableCell className={styles.tableCell}>
+                        {s.average_score !== undefined && s.average_score !== null ? `${s.average_score}/10` : '-'}
                       </TableCell>
 
                       <TableCell>

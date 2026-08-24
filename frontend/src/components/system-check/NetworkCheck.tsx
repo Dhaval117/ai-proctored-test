@@ -107,19 +107,6 @@ export function NetworkCheck({
 
       <div className={styles.handshakeContainer}>
         <HandshakeRow
-          label="Register Candidate"
-          status={networkCheck.createStatus}
-          detail={
-            networkCheck.createStatus === 'running'
-              ? 'Creating exam session…'
-              : networkCheck.createStatus === 'success'
-                ? 'Session registered successfully'
-                : networkCheck.createStatus === 'error'
-                  ? 'Failed to register session'
-                  : 'Waiting…'
-          }
-        />
-        <HandshakeRow
           label="Upload Reference Photo"
           status={networkCheck.verifyStatus}
           detail={

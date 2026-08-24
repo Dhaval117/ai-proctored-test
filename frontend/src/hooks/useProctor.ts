@@ -10,6 +10,8 @@ export interface ProctorState {
   isPaused: boolean
   proctoringEnabled: boolean
   allowToggle: boolean
+  isLoadingConfig: boolean
+  error: string | null
 }
 
 export interface ProctorActions {
@@ -29,6 +31,8 @@ export function useProctor(sessionId: string | undefined): ProctorState & Procto
   const [showWarningModal, setShowWarningModal] = useState(false)
   const [proctoringEnabled, setProctoringEnabled] = useState(true)
   const [allowToggle, setAllowToggle] = useState(false)
+  const [isLoadingConfig, setIsLoadingConfig] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   
   // Default paused to true in development mode unless explicitly unpaused (do not pause in unit tests)
   const [isPaused, setIsPausedState] = useState<boolean>(() => {
@@ -53,6 +57,16 @@ export function useProctor(sessionId: string | undefined): ProctorState & Procto
     let mounted = true
     async function fetchConfig() {
       try {
+        if (sessionId) {
+          const session = await api.getSession(sessionId)
+          if (mounted) {
+            setStatus(session.status)
+            if (session.status === 'SUSPENDED') {
+              isSuspended.current = true
+            }
+          }
+        }
+        
         const config = await api.getProctoringConfig()
         if (!mounted) return
         setProctoringEnabled(config.proctoring_enabled)
@@ -63,8 +77,13 @@ export function useProctor(sessionId: string | undefined): ProctorState & Procto
           setIsPausedState(false)
           localStorage.removeItem('PAUSE_PROCTORING')
         }
-      } catch (err) {
-        console.error('Failed to fetch proctoring config:', err)
+      } catch (err: any) {
+        console.error('Failed to fetch config/session:', err)
+        setError(err.message || 'Invalid or expired exam session.')
+      } finally {
+        if (mounted) {
+          setIsLoadingConfig(false)
+        }
       }
     }
     fetchConfig()
@@ -194,6 +213,8 @@ export function useProctor(sessionId: string | undefined): ProctorState & Procto
     isPaused,
     proctoringEnabled,
     allowToggle,
+    isLoadingConfig,
+    error,
     dismissWarning,
     handleViolation,
     setIsPaused,

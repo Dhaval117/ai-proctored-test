@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
 
 from app import crud
@@ -26,11 +26,14 @@ def get_proctoring_config():
     )
 
 @router.post("/sessions/{session_id}/log-event", response_model=LogEventResponse)
-def log_proctoring_event(session_id: uuid.UUID, body: LogEventRequest, db: DbSession):
+def log_proctoring_event(session_id: uuid.UUID, body: LogEventRequest, db: DbSession, x_exam_token: str | None = Header(None, alias="X-Exam-Token")):
     """Log a proctoring event to the database. Suspends session at 3 violations."""
     session = crud.get_session(db, str(session_id))
     if not session:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+        
+    if not x_exam_token or session.exam_token != x_exam_token:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid or missing exam token.")
         
     log_entry, updated_session = crud.log_proctoring_event(
         db,
