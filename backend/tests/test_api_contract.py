@@ -266,7 +266,9 @@ class TestGetNextQuestion:
     def test_success(self, client, auth_headers):
         r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
-        r = client.get(f"/api/sessions/{session_id}/next-question")
+        r_verify = client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
+        exam_token = r_verify.json()["exam_token"]
+        r = client.get(f"/api/sessions/{session_id}/next-question", headers={"X-Exam-Token": exam_token})
         assert r.status_code == 200
         body = r.json()
         assert "question_id" in body
@@ -282,8 +284,10 @@ class TestSubmitAnswer:
     def test_success(self, client, auth_headers):
         r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
-        client.get(f"/api/sessions/{session_id}/next-question")
-        r = client.post(f"/api/sessions/{session_id}/submit-answer", json=VALID_ANSWER_PAYLOAD)
+        r_verify = client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
+        exam_token = r_verify.json()["exam_token"]
+        client.get(f"/api/sessions/{session_id}/next-question", headers={"X-Exam-Token": exam_token})
+        r = client.post(f"/api/sessions/{session_id}/submit-answer", json=VALID_ANSWER_PAYLOAD, headers={"X-Exam-Token": exam_token})
         assert r.status_code == 200
         body = r.json()
         assert 0 <= body["evaluation_score"] <= 10
@@ -292,9 +296,12 @@ class TestSubmitAnswer:
     def test_empty_answer_rejected(self, client, auth_headers):
         r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
+        r_verify = client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
+        exam_token = r_verify.json()["exam_token"]
         r = client.post(
             f"/api/sessions/{session_id}/submit-answer",
             json={**VALID_ANSWER_PAYLOAD, "transcribed_text": ""},
+            headers={"X-Exam-Token": exam_token}
         )
         assert r.status_code == 422
 
@@ -323,18 +330,20 @@ class TestSubmitAnswer:
         with patch("app.orchestrator.nodes.get_llm", return_value=CustomMockLLM()):
             r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
             session_id = r_create.json()["session_id"]
+            r_verify = client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
+            exam_token = r_verify.json()["exam_token"]
             
-            client.get(f"/api/sessions/{session_id}/next-question")
+            client.get(f"/api/sessions/{session_id}/next-question", headers={"X-Exam-Token": exam_token})
             
             # Answer 1 triggers follow-up
-            r1 = client.post(f"/api/sessions/{session_id}/submit-answer", json=VALID_ANSWER_PAYLOAD)
+            r1 = client.post(f"/api/sessions/{session_id}/submit-answer", json=VALID_ANSWER_PAYLOAD, headers={"X-Exam-Token": exam_token})
             assert r1.status_code == 200
             assert r1.json()["next_action"] == "FOLLOW_UP"
             
-            client.get(f"/api/sessions/{session_id}/next-question")
+            client.get(f"/api/sessions/{session_id}/next-question", headers={"X-Exam-Token": exam_token})
             
             # Answer 2 finishes it
-            r2 = client.post(f"/api/sessions/{session_id}/submit-answer", json=VALID_ANSWER_PAYLOAD)
+            r2 = client.post(f"/api/sessions/{session_id}/submit-answer", json=VALID_ANSWER_PAYLOAD, headers={"X-Exam-Token": exam_token})
             assert r2.status_code == 200
             assert r2.json()["next_action"] == "NEXT_QUESTION"
             
@@ -357,38 +366,40 @@ class TestSubmitAnswer:
 # ─────────────────────────────────────────────
 
 class TestLogEvent:
-    def _create_session(self, client, auth_headers) -> str:
+    def _create_session(self, client, auth_headers) -> tuple[str, str]:
         r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
-        client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
-        return session_id
+        r_verify = client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
+        exam_token = r_verify.json()["exam_token"]
+        return session_id, exam_token
 
     def test_first_violation_returns_active(self, client, auth_headers):
-        session_id = self._create_session(client, auth_headers)
-        r = client.post(f"/api/sessions/{session_id}/log-event", json=VALID_EVENT_PAYLOAD)
+        session_id, exam_token = self._create_session(client, auth_headers)
+        r = client.post(f"/api/sessions/{session_id}/log-event", json=VALID_EVENT_PAYLOAD, headers={"X-Exam-Token": exam_token})
         assert r.status_code == 200
         body = r.json()
         assert body["violation_count"] == 1
         assert body["session_status"] == "ACTIVE"
 
     def test_third_violation_suspends_session(self, client, auth_headers):
-        session_id = self._create_session(client, auth_headers)
+        session_id, exam_token = self._create_session(client, auth_headers)
         for _ in range(3):
-            r = client.post(f"/api/sessions/{session_id}/log-event", json=VALID_EVENT_PAYLOAD)
+            r = client.post(f"/api/sessions/{session_id}/log-event", json=VALID_EVENT_PAYLOAD, headers={"X-Exam-Token": exam_token})
         assert r.json()["session_status"] == "SUSPENDED"
 
     def test_low_severity_does_not_suspend(self, client, auth_headers):
-        session_id = self._create_session(client, auth_headers)
+        session_id, exam_token = self._create_session(client, auth_headers)
         low_payload = {**VALID_EVENT_PAYLOAD, "severity": "LOW"}
         for _ in range(5):
-            r = client.post(f"/api/sessions/{session_id}/log-event", json=low_payload)
+            r = client.post(f"/api/sessions/{session_id}/log-event", json=low_payload, headers={"X-Exam-Token": exam_token})
         assert r.json()["session_status"] == "ACTIVE"
 
     def test_invalid_event_type_rejected(self, client, auth_headers):
-        session_id = self._create_session(client, auth_headers)
+        session_id, exam_token = self._create_session(client, auth_headers)
         r = client.post(
             f"/api/sessions/{session_id}/log-event",
             json={**VALID_EVENT_PAYLOAD, "event_type": "INVALID_TYPE"},
+            headers={"X-Exam-Token": exam_token}
         )
         assert r.status_code == 422
 
@@ -405,11 +416,12 @@ class TestProctoringConfig:
         from unittest.mock import patch
         r_create = client.post("/api/admin/sessions", headers=auth_headers, json=VALID_CREATE_PAYLOAD)
         session_id = r_create.json()["session_id"]
-        client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
+        r_verify = client.post(f"/api/sessions/{session_id}/verify", json=VALID_VERIFY_PAYLOAD)
+        exam_token = r_verify.json()["exam_token"]
         
         with patch("app.routers.proctor_router.PROCTORING_ENABLED", False), \
              patch("app.crud.PROCTORING_ENABLED", False):
-            r = client.post(f"/api/sessions/{session_id}/log-event", json=VALID_EVENT_PAYLOAD)
+            r = client.post(f"/api/sessions/{session_id}/log-event", json=VALID_EVENT_PAYLOAD, headers={"X-Exam-Token": exam_token})
             assert r.status_code == 200
             body = r.json()
             assert body["violation_count"] == 0

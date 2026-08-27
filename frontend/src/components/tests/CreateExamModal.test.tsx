@@ -57,10 +57,11 @@ describe('CreateExamModal', () => {
       expect(api.createAdminSession).toHaveBeenCalledWith({
         name: 'John Doe',
         email: 'john@example.com',
+        expires_in_hours: 24,
+        num_questions: 5,
+        follow_ups_per_question: 1,
         language: 'TypeScript',
         experience_years: 3,
-        expires_in_hours: 24,
-        resume_text: null
       })
       expect(mockOnSuccess).toHaveBeenCalled()
     })

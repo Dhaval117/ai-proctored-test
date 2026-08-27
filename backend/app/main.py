@@ -16,9 +16,13 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # Preload the Whisper and VAD models in a background thread on server startup
     # so they are instantly ready when the user clicks 'Start Recording'.
-    from app.speech_service import get_speech_service
-    logger.info("Pre-loading speech models in background...")
-    asyncio.create_task(asyncio.to_thread(get_speech_service))
+    from app.config import SPEECH_TO_TEXT_PROVIDER
+    if SPEECH_TO_TEXT_PROVIDER == "local":
+        from app.speech_service import get_speech_service
+        logger.info("Pre-loading speech models in background...")
+        asyncio.create_task(asyncio.to_thread(get_speech_service))
+    else:
+        logger.info("Using Gemini Live API for speech transcription. Local models will not be loaded.")
     yield
 
 app = FastAPI(

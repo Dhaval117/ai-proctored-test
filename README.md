@@ -39,7 +39,7 @@ Before getting started with local development without Docker, ensure you have th
 - **Docker & Docker Compose**: (Optional, required only if running containerized deployment via `docker-compose.yml`)
 - **Node.js**: `v20.0.0` or higher (LTS v24 recommended)
 - **npm**: `v9.0.0` or higher (bundled with Node.js)
-- **FFmpeg**: Required for audio processing (Whisper). Must be installed and accessible in your system's PATH.
+- **FFmpeg**: (Optional, required only if using local `faster-whisper` STT instead of Gemini API for transcription). Must be installed and accessible in your system's PATH.
 - **API Key**: A valid [Google Gemini API Key](https://aistudio.google.com/app/apikey) (`GEMINI_API_KEY`)
 
 ---
@@ -69,7 +69,7 @@ Before getting started with local development without Docker, ensure you have th
    ```bash
    uv sync --extra dev
    ```
-   *(Note: `uv sync` will automatically create the `.venv` virtual environment and download the required Python version if needed.)*
+   *(Note: `uv sync` will automatically create the `.venv` virtual environment and download the required Python version if needed. If you only plan to use the Gemini STT provider, you can safely ignore any warnings related to `torch` or `faster-whisper`.)*
 
 3. **Configure Environment Variables**:
    Copy `.env.example` to `.env` and configure your Google Gemini API key:
@@ -88,6 +88,7 @@ Before getting started with local development without Docker, ensure you have th
    DATABASE_URL="sqlite:///./dev.db" # Or postgresql://user:pass@host:5432/dbname
    JWT_SECRET_KEY="super_secret_key_that_is_at_least_32_bytes_long_for_hs256"
    LIVE_TRANSCRIPTION_ENABLED=true
+   SPEECH_TO_TEXT_PROVIDER=gemini # Use "gemini" for cloud API (default) or "local" for faster-whisper on-premise
    ```
 
 4. **Database Migrations**:

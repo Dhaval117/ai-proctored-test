@@ -26,8 +26,10 @@ export function useSpeech(): UseSpeechReturn {
   // Accumulate final transcripts from the server, 
   // and append the interim one at the end.
   const finalTranscriptRef = useRef<string>('')
+  const isRecordingRequested = useRef<boolean>(false)
 
   const cleanup = useCallback(() => {
+    isRecordingRequested.current = false
     if (processorRef.current) {
       processorRef.current.disconnect()
       processorRef.current = null
@@ -37,7 +39,9 @@ export function useSpeech(): UseSpeechReturn {
       sourceRef.current = null
     }
     if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop())
+      mediaStreamRef.current.getTracks().forEach(track => {
+        track.stop()
+      })
       mediaStreamRef.current = null
     }
     if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
@@ -81,6 +85,7 @@ export function useSpeech(): UseSpeechReturn {
     setError(null)
     setTranscript('')
     finalTranscriptRef.current = ''
+    isRecordingRequested.current = true
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -91,6 +96,13 @@ export function useSpeech(): UseSpeechReturn {
           noiseSuppression: true,
         }
       })
+      
+      // If stopRecording was called while we were waiting for permissions
+      if (!isRecordingRequested.current) {
+        stream.getTracks().forEach(track => track.stop())
+        return
+      }
+      
       mediaStreamRef.current = stream
 
       const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -99,6 +111,10 @@ export function useSpeech(): UseSpeechReturn {
       wsRef.current = ws
 
       ws.onopen = () => {
+        if (!isRecordingRequested.current) {
+            ws.close()
+            return
+        }
         setIsListening(true)
 
         // Start processing audio
@@ -115,7 +131,13 @@ export function useSpeech(): UseSpeechReturn {
         processor.onaudioprocess = (e) => {
           if (ws.readyState === WebSocket.OPEN) {
             const inputData = e.inputBuffer.getChannelData(0)
-            ws.send(inputData.buffer) // Send Float32Array underlying buffer
+            // Convert Float32 to Int16
+            const int16Data = new Int16Array(inputData.length)
+            for (let i = 0; i < inputData.length; i++) {
+              const s = Math.max(-1, Math.min(1, inputData[i]))
+              int16Data[i] = s < 0 ? s * 0x8000 : s * 0x7FFF
+            }
+            ws.send(int16Data.buffer) // Send Int16Array underlying buffer
           }
         }
 
@@ -155,6 +177,7 @@ export function useSpeech(): UseSpeechReturn {
   }, [cleanup])
 
   const stopRecording = useCallback(() => {
+    isRecordingRequested.current = false
     cleanup()
   }, [cleanup])
 
