@@ -21,14 +21,17 @@ class SpeechService:
 
     def transcribe(self, audio_array: np.ndarray, initial_prompt: str = None) -> str:
         """
-        Transcribes a float32 numpy array representing 16kHz audio.
+        Transcribes an int16 numpy array representing 16kHz audio.
         """
         if len(audio_array) == 0:
             return ""
             
+        # Convert int16 to float32 in range [-1.0, 1.0] for Whisper
+        float_array = audio_array.astype(np.float32) / 32768.0
+            
         # Add 0.5s (8000 samples) of silence padding to the end of the audio.
         # This helps Whisper correctly finalize the last word without hallucinating.
-        padded_array = np.pad(audio_array, (0, 8000), mode='constant')
+        padded_array = np.pad(float_array, (0, 8000), mode='constant')
             
         segments, _ = self.model.transcribe(
             padded_array, 
@@ -47,7 +50,8 @@ class SpeechService:
             return []
             
         from faster_whisper.vad import get_speech_timestamps
-        return get_speech_timestamps(audio_array, sampling_rate=16000)
+        float_array = audio_array.astype(np.float32) / 32768.0
+        return get_speech_timestamps(float_array, sampling_rate=16000)
 
 def get_speech_service() -> SpeechService:
     global _speech_service_instance
