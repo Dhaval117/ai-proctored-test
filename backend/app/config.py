@@ -14,6 +14,7 @@ load_dotenv()
 MAX_VIOLATIONS: int = int(os.getenv("MAX_VIOLATIONS", "3"))
 MAX_MAIN_QUESTIONS: int = int(os.getenv("MAX_MAIN_QUESTIONS", "5"))
 MAX_FOLLOW_UPS_PER_QUESTION: int = int(os.getenv("MAX_FOLLOW_UPS_PER_QUESTION", "1"))
+PREVIOUS_QUESTIONS_LIMIT: int = int(os.getenv("PREVIOUS_QUESTIONS_LIMIT", "50"))
 
 # Proctoring Settings
 # PROCTORING_ENABLED controls whether proctoring checks and violation telemetry are enforced.

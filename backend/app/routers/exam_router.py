@@ -7,7 +7,7 @@ from app import crud
 from app.orchestrator import exam_graph
 from app.schemas import QuestionResponse, SubmitAnswerRequest, SubmitAnswerResponse, NextAction, VerifySessionResponse
 from datetime import datetime, timezone
-from app.config import MAX_MAIN_QUESTIONS
+from app.config import MAX_MAIN_QUESTIONS, PREVIOUS_QUESTIONS_LIMIT
 
 router = APIRouter(prefix="/api/sessions", tags=["exam"])
 
@@ -54,6 +54,12 @@ def get_next_question(session_id: uuid.UUID, db: Session = Depends(get_db), x_ex
     
     if not state.values:
         # Initialize graph for the first time
+        previous_questions = crud.get_recent_main_questions(
+            db, 
+            language=session.language, 
+            experience_years=session.experience_years, 
+            limit=PREVIOUS_QUESTIONS_LIMIT
+        )
         exam_graph.invoke({
             "session_id": str(session_id),
             "language": session.language,
@@ -66,6 +72,7 @@ def get_next_question(session_id: uuid.UUID, db: Session = Depends(get_db), x_ex
             "resume_text": session.resume_text or "",
             "num_questions": session.num_questions,
             "follow_ups_per_question": session.follow_ups_per_question,
+            "previous_questions": previous_questions,
         }, config)
         state = exam_graph.get_state(config)
     elif state.next and state.next[0] != "process_answer":
