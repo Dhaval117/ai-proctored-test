@@ -38,7 +38,8 @@ def init_question_node(state: InterviewState) -> dict:
         experience=state.get("experience", 0),
         language=state.get("language", "programming"),
         difficulty=get_difficulty(1, max_main_questions),
-        resume_text=state.get("resume_text", "")
+        resume_text=state.get("resume_text", ""),
+        previous_questions=state.get("previous_questions", [])
     )
     
     response = llm.invoke(prompt)
@@ -134,7 +135,8 @@ def generate_next_question_node(state: InterviewState) -> dict:
         language=state.get("language", "programming"),
         history_text=history_text,
         difficulty=difficulty,
-        resume_text=state.get("resume_text", "")
+        resume_text=state.get("resume_text", ""),
+        previous_questions=state.get("previous_questions", [])
     )
     
     response = llm.invoke(prompt)

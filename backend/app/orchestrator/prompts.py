@@ -1,16 +1,22 @@
-def get_init_question_prompt(experience: int, language: str, difficulty: str, resume_text: str = "") -> str:
+def get_init_question_prompt(experience: int, language: str, difficulty: str, resume_text: str = "", previous_questions: list[str] = None) -> str:
+    constraint = ""
+    if previous_questions:
+        constraint = "\nDo NOT ask any of the following previously asked questions (or questions highly similar to them), but do ensure your new question maintains a similar level of difficulty:\n"
+        for q in previous_questions:
+            constraint += f"- {q}\n"
+
     if resume_text:
         return f"""You are an expert technical interviewer.
 Candidate's Projects & Resume Context:
 {resume_text}
 
-To start the interview, ask a question based strictly on the candidate's provided resume and projects. Do NOT focus on or ask generic questions about a specific technology or years of experience.
+To start the interview, ask a question based strictly on the candidate's provided resume and projects. Do NOT focus on or ask generic questions about a specific technology or years of experience.{constraint}
 CRITICAL RULE 1: The difficulty of this question MUST be exactly: {difficulty}.
 CRITICAL RULE 2: Choose a truly random, unique angle based on their work described in the resume. Do NOT ask the most standard or common interview questions.
 Output ONLY the question text. Do not include any introductory remarks."""
 
     return f"""You are an expert technical interviewer. The candidate has {experience} years of experience with {language}.
-To start the interview, ask a question appropriate for their experience level. The question can be either an open-ended conceptual question or a specific factual question with a fixed answer.
+To start the interview, ask a question appropriate for their experience level. The question can be either an open-ended conceptual question or a specific factual question with a fixed answer.{constraint}
 CRITICAL RULE 1: The difficulty of this question MUST be exactly: {difficulty}.
 CRITICAL RULE 2: Choose a truly random technical topic for this question to ensure variety across different interviews. Do NOT ask the most standard or common interview questions, find a unique and unpredictable angle.
 Output ONLY the question text. Do not include any introductory remarks."""
@@ -65,8 +71,15 @@ def get_generate_next_question_prompt(
     language: str,
     history_text: str,
     difficulty: str,
-    resume_text: str = ""
+    resume_text: str = "",
+    previous_questions: list[str] = None
 ) -> str:
+    constraint = ""
+    if previous_questions:
+        constraint = "\nDo NOT ask any of the following previously asked questions (or questions highly similar to them), but do ensure your new question maintains a similar level of difficulty:\n"
+        for q in previous_questions:
+            constraint += f"- {q}\n"
+
     if resume_text:
         return f"""You are a technical interviewer.
 Candidate's Projects & Resume Context:
@@ -75,7 +88,7 @@ Candidate's Projects & Resume Context:
 Previous conversation:
 {history_text}
 
-Ask a completely new, distinct technical question based strictly on the candidate's provided resume and projects. Do NOT focus on generic technologies or years of experience.
+Ask a completely new, distinct technical question based strictly on the candidate's provided resume and projects. Do NOT focus on generic technologies or years of experience.{constraint}
 CRITICAL RULE 1: The difficulty of this question MUST be exactly: {difficulty}.
 CRITICAL RULE 2: Choose a truly random, unique angle based on the candidate's experiences and projects described in their resume.
 Output ONLY the question text. Do not include introductory remarks."""
@@ -84,7 +97,7 @@ Output ONLY the question text. Do not include introductory remarks."""
 Previous conversation:
 {history_text}
 
-Ask a completely new, distinct technical question.
+Ask a completely new, distinct technical question.{constraint}
 CRITICAL RULE 1: The difficulty of this question MUST be exactly: {difficulty}. Ensure it is appropriately calibrated for someone with {experience} years of experience.
 CRITICAL RULE 2: Choose a truly random, completely different technical topic from anything discussed previously to ensure variety.
 Output ONLY the question text. Do not include introductory remarks."""

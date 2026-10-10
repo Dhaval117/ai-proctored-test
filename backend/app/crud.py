@@ -235,6 +235,22 @@ def get_session_qa(db: Session, session_id: str) -> list[ExamQA]:
     )
 
 
+def get_recent_main_questions(db: Session, language: str, experience_years: int, limit: int) -> list[str]:
+    """Return recent main questions asked globally for the same language/experience."""
+    stmt = (
+        select(ExamQA.question_text)
+        .join(ExamSession, ExamQA.session_id == ExamSession.id)
+        .where(
+            ExamSession.language.ilike(language),
+            ExamSession.experience_years == experience_years,
+            ExamQA.is_follow_up == False
+        )
+        .order_by(ExamQA.created_at.desc())
+        .limit(limit)
+    )
+    return list(db.scalars(stmt).all())
+
+
 # ─────────────────────────────────────────────
 # ProctoringLog CRUD
 # ─────────────────────────────────────────────

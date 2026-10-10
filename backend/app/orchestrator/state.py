@@ -15,3 +15,4 @@ class InterviewState(TypedDict):
     resume_text: str
     num_questions: int
     follow_ups_per_question: int
+    previous_questions: List[str]

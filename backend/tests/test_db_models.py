@@ -259,6 +259,46 @@ class TestExamQACRUD:
         qa_list = crud.get_session_qa(db, session.id)
         assert [q.question_text for q in qa_list] == ["Q1", "Q2", "Q3"]
 
+    def test_get_recent_main_questions(self, db):
+        import time
+        candidate = crud.create_candidate(db, name="Recent Q User", email=f"recent_q_{id(db)}@test.com")
+        
+        # Session 1: Python, 2 years
+        session1 = crud.create_session(
+            db, candidate_id=candidate.id, language="Python", experience_years=2
+        )
+        crud.create_question(db, session_id=session1.id, question_text="Main Python Q1", sequence_number=1, is_follow_up=False)
+        crud.create_question(db, session_id=session1.id, question_text="Follow Python Q1", sequence_number=2, is_follow_up=True)
+        crud.create_question(db, session_id=session1.id, question_text="Main Python Q2", sequence_number=3, is_follow_up=False)
+        
+        time.sleep(0.02)
+        # Session 2: Python, 3 years (different experience)
+        session2 = crud.create_session(
+            db, candidate_id=candidate.id, language="Python", experience_years=3
+        )
+        crud.create_question(db, session_id=session2.id, question_text="Main Python Q3", sequence_number=1, is_follow_up=False)
+        
+        time.sleep(0.02)
+        # Session 3: python, 2 years (same experience, should be returned despite case)
+        session3 = crud.create_session(
+            db, candidate_id=candidate.id, language="python", experience_years=2
+        )
+        crud.create_question(db, session_id=session3.id, question_text="Main Python Q4", sequence_number=1, is_follow_up=False)
+        time.sleep(0.02)
+        crud.create_question(db, session_id=session3.id, question_text="Main Python Q5", sequence_number=2, is_follow_up=False)
+
+        # Test limit and filtering
+        recent_qs = crud.get_recent_main_questions(db, language="Python", experience_years=2, limit=2)
+        
+        # Should only get main questions from sessions with Python and 2 years exp
+        # Order is desc created_at, so Q5, Q4, Q2, Q1
+        assert len(recent_qs) == 2
+        # Since they are created in order, Q5 is newest, then Q4
+        assert "Main Python Q5" in recent_qs
+        assert "Main Python Q4" in recent_qs
+        assert "Main Python Q3" not in recent_qs # diff exp
+        assert "Follow Python Q1" not in recent_qs # follow-up
+
 
 # ─────────────────────────────────────────────
 # ProctoringLog CRUD Tests
