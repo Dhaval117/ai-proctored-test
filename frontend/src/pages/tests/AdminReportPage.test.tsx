@@ -29,6 +29,8 @@ describe('AdminReportPage (Story 5.2)', () => {
         risk_score: 20,
         created_at: '2026-07-09T10:00:00Z',
         total_questions: 5,
+        num_questions: 5,
+        follow_ups_per_question: 1,
       },
       qa_transcript: [
         {

@@ -36,6 +36,7 @@ import {
 import { api, type AdminSessionSummary } from '../lib/api'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { CreateExamModal } from '../components/CreateExamModal'
+import { AdminChatbot } from '../components/AdminChatbot'
 import { useAdminStyles } from "./styles/AdminPage.styles"
 import { useCommonStyles } from "./styles/common.styles"
 import { ADMIN_PAGE_SIZE } from '../utils/constants'
@@ -129,27 +130,6 @@ export default function AdminPage() {
     }
   }
 
-  const getRiskScoreBadge = (score: number) => {
-    if (score >= 40) {
-      return (
-        <Badge appearance="filled" color="danger">
-          {score} (High)
-        </Badge>
-      )
-    }
-    if (score >= 15) {
-      return (
-        <Badge appearance="tint" color="warning">
-          {score} (Medium)
-        </Badge>
-      )
-    }
-    return (
-      <Badge appearance="tint" color="success">
-        {score} (Low)
-      </Badge>
-    )
-  }
 
   return (
     <div className={`${commonStyles.pageContainer} animate-fade-in`}>
@@ -369,6 +349,7 @@ export default function AdminPage() {
           </div>
         </Card>
       </div>
+      <AdminChatbot />
     </div>
   )
 }

@@ -1,0 +1,116 @@
+import { makeStyles, tokens } from '@fluentui/react-components'
+
+export const useAdminChatbotStyles = makeStyles({
+  container: {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    zIndex: 1000,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+  },
+  toggleButton: {
+    width: '56px',
+    height: '56px',
+    borderRadius: '50%',
+    boxShadow: tokens.shadow16,
+    backgroundColor: tokens.colorBrandBackground,
+    color: tokens.colorNeutralForegroundOnBrand,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+    '&:hover': {
+      transform: 'scale(1.1)',
+      backgroundColor: tokens.colorBrandBackgroundHover,
+    },
+    '&:active': {
+      transform: 'scale(0.95)',
+    }
+  },
+  chatWindow: {
+    width: '380px',
+    height: '500px',
+    maxHeight: '80vh',
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderRadius: tokens.borderRadiusXLarge,
+    boxShadow: tokens.shadow64,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    marginBottom: '16px',
+    transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+    transformOrigin: 'bottom right',
+    opacity: 1,
+    transform: 'scale(1)',
+  },
+  chatWindowHidden: {
+    opacity: 0,
+    transform: 'scale(0.8)',
+    pointerEvents: 'none',
+  },
+  header: {
+    padding: '16px',
+    backgroundColor: tokens.colorBrandBackground,
+    color: tokens.colorNeutralForegroundOnBrand,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerTitle: {
+    fontWeight: tokens.fontWeightSemibold,
+    fontSize: tokens.fontSizeBase500,
+  },
+  headerSubtitle: {
+    fontSize: tokens.fontSizeBase200,
+    opacity: 0.8,
+  },
+  messagesContainer: {
+    flexGrow: 1,
+    overflowY: 'auto',
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    backgroundColor: tokens.colorNeutralBackground2,
+  },
+  messageBubbleUser: {
+    alignSelf: 'flex-end',
+    backgroundColor: tokens.colorBrandBackground,
+    color: tokens.colorNeutralForegroundOnBrand,
+    padding: '10px 14px',
+    borderRadius: '16px 16px 4px 16px',
+    maxWidth: '85%',
+    wordBreak: 'break-word',
+  },
+  messageBubbleBot: {
+    alignSelf: 'flex-start',
+    backgroundColor: tokens.colorNeutralBackground1,
+    color: tokens.colorNeutralForeground1,
+    padding: '10px 14px',
+    borderRadius: '16px 16px 16px 4px',
+    maxWidth: '85%',
+    boxShadow: tokens.shadow4,
+    wordBreak: 'break-word',
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+  },
+  messageText: {
+    fontSize: tokens.fontSizeBase300,
+    lineHeight: '1.4',
+  },
+  inputContainer: {
+    padding: '16px',
+    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
+    backgroundColor: tokens.colorNeutralBackground1,
+    display: 'flex',
+    gap: '8px',
+  },
+  input: {
+    flexGrow: 1,
+  },
+  sendButton: {
+    flexShrink: 0,
+  }
+})

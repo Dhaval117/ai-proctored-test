@@ -44,6 +44,7 @@ export interface SessionDetail {
   experience_years: number
   status: ExamStatus
   violation_count: number
+  risk_score: number
   average_score?: number | null
   created_at: string
   completed_at?: string | null
@@ -207,6 +208,7 @@ export interface AdminSessionSummary {
   status: ExamStatus
   violation_count: number
   risk_score: number
+  average_score?: number | null
   created_at: string
   completed_at?: string
   expires_at?: string
@@ -228,6 +230,15 @@ export interface AdminUserResponse {
 
 export interface AdminUserListResponse {
   admins: AdminUserResponse[]
+}
+
+export interface AdminChatRequest {
+  message: string
+  history?: Array<{role: string, content: string}>
+}
+
+export interface AdminChatResponse {
+  response: string
 }
 
 export const api = {
@@ -275,6 +286,9 @@ export const api = {
 
   deleteManager: (adminId: string) =>
     request<any>('DELETE', `/api/admin/managers/${adminId}`),
+
+  adminChat: (body: AdminChatRequest) =>
+    request<AdminChatResponse>('POST', '/api/admin/chat', body),
 
   // Exam
   getNextQuestion: (sessionId: string) =>

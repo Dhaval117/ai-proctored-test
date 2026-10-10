@@ -130,6 +130,10 @@ class LogEventRequest(BaseModel):
         description="Optional base64 screenshot for MULTI_FACE or FACE_MISMATCH events",
     )
 
+class AdminChatRequest(BaseModel):
+    message: str = Field(..., description="The natural language question to ask the AI.")
+    history: Optional[List[dict]] = Field(default=[], description="Chat history.")
+
 
 # ─────────────────────────────────────────────
 # RESPONSE BODIES
@@ -238,6 +242,10 @@ class AdminSessionDetailResponse(BaseModel):
     session: SessionDetail
     qa_transcript: List[QAEntry]
     proctoring_logs: List[ProctoringLogEntry]
+
+class AdminChatResponse(BaseModel):
+    response: str
+
 
 
 class ErrorResponse(BaseModel):

@@ -29,3 +29,7 @@ SPEECH_TO_TEXT_PROVIDER: str = os.getenv("SPEECH_TO_TEXT_PROVIDER", "gemini").lo
 # LIVE_TRANSCRIPTION_ENABLED controls whether interim/live transcripts are computed and sent to the UI
 # while the user is speaking. If False, only finalized VAD silence transcripts are shown.
 LIVE_TRANSCRIPTION_ENABLED: bool = os.getenv("LIVE_TRANSCRIPTION_ENABLED", "false").lower() == "true"
+
+# SQL Agent Settings
+SQL_AGENT_MODEL: str = os.getenv("SQL_AGENT_MODEL", "gemini-3.5-flash-lite")
+

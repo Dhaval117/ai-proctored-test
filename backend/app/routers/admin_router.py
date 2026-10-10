@@ -23,6 +23,7 @@ from app.models import ExamSession, Candidate, AdminUser
 from app.auth import get_current_admin, verify_password, create_access_token, get_current_superadmin, get_password_hash
 from app.config import MAX_MAIN_QUESTIONS
 from app.orchestrator.llm import get_llm
+from app.orchestrator.sql_agent import ask_sql_agent_async
 from app.schemas import (
     AdminSessionDetailResponse,
     AdminSessionListResponse,
@@ -40,7 +41,9 @@ from app.schemas import (
     AdminUserResponse,
     AdminUserListResponse,
     AdminCreateRequest,
-    ChangePasswordRequest
+    ChangePasswordRequest,
+    AdminChatRequest,
+    AdminChatResponse
 )
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -322,3 +325,15 @@ def get_admin_session_detail(
         qa_transcript=qa_transcript,
         proctoring_logs=proctoring_logs,
     )
+
+@router.post("/chat", response_model=AdminChatResponse)
+async def admin_chat(
+    request: AdminChatRequest,
+    current_admin: AdminUser = Depends(get_current_admin)
+):
+    """
+    Story: Natural Language Admin Chatbot
+    Takes a natural language query, translates it to SQL, runs it, and returns a natural language response.
+    """
+    response_text = await ask_sql_agent_async(request.message)
+    return AdminChatResponse(response=response_text)
