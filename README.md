@@ -87,6 +87,7 @@ Before getting started with local development without Docker, ensure you have th
    GEMINI_MODEL="gemini-3.1-flash-lite"
    DATABASE_URL="sqlite:///./dev.db" # Or postgresql://user:pass@host:5432/dbname
    JWT_SECRET_KEY="super_secret_key_that_is_at_least_32_bytes_long_for_hs256"
+   PREVIOUS_QUESTIONS_LIMIT=50 # The number of past questions (per language/experience) to provide to the LLM to prevent it from repeating questions globally.
    LIVE_TRANSCRIPTION_ENABLED=true
    SPEECH_TO_TEXT_PROVIDER=gemini # Use "gemini" for cloud API (default) or "local" for faster-whisper on-premise
    ```
